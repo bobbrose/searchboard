@@ -1,0 +1,195 @@
+/* View toggle */
+.toggle {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.toggleBtn {
+  padding: 7px 12px;
+  border: none;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-weight: 550;
+  cursor: pointer;
+}
+.toggleBtn + .toggleBtn {
+  border-left: 1px solid var(--border-strong);
+}
+.toggleActive {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+/* Kanban board */
+.board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(240px, 1fr);
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: var(--space-3);
+  align-items: start;
+}
+
+.column {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+}
+
+.colHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-3);
+  font-weight: 650;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.colCount {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 1px 8px;
+  min-width: 22px;
+  text-align: center;
+}
+
+.colBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+
+.colEmpty {
+  text-align: center;
+  color: var(--text-faint);
+  margin: var(--space-3) 0;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+}
+
+.cardMain {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: var(--space-3);
+  cursor: pointer;
+}
+.cardMain:hover .cardTitle {
+  color: var(--accent-text);
+}
+
+.cardTitle {
+  font-size: 14px;
+  font-weight: 650;
+}
+.cardOrg {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.cardContacts {
+  margin: var(--space-2) 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border);
+}
+.moveSelect {
+  flex: 1;
+  padding: 4px 6px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  cursor: pointer;
+}
+
+.stars {
+  color: var(--warn);
+  letter-spacing: 1px;
+}
+.starsDim {
+  color: var(--border-strong);
+}
+
+/* List / table */
+.tableWrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.table th:hover {
+  color: var(--text);
+}
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+.row {
+  cursor: pointer;
+}
+.row:hover {
+  background: var(--surface-2);
+}
+.roleCell {
+  font-weight: 600;
+}
+.actionsCol {
+  text-align: right;
+  white-space: nowrap;
+  width: 1%;
+}

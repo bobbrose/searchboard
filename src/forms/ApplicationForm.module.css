@@ -1,0 +1,80 @@
+/* Paste-a-JD collapsed prompt */
+.pastePrompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+  background: var(--accent-soft);
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius);
+}
+
+.pasteHint {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Expanded panel */
+.pastePanel {
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.pasteArea {
+  background: var(--surface);
+}
+
+.pasteError {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  color: var(--danger);
+}
+
+.pasteActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+/* Linked contacts checklist */
+.contactList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.contactItem:hover {
+  background: var(--surface-2);
+}
+.contactItem input {
+  width: auto;
+}
+
+.contactRole {
+  color: var(--text-muted);
+}
+
+/* Share button sits on the left of the footer */
+.shareBtn {
+  margin-right: auto;
+}

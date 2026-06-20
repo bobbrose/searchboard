@@ -1,33 +1,35 @@
-import { useState, useEffect } from 'react'
-import { loadFromLocalStorage, saveToLocalStorage, emptyDB } from './lib/store.js'
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { DbProvider } from './lib/db.jsx';
+import Layout from './components/Layout.jsx';
+import Dashboard from './pages/Dashboard.jsx';
+import Applications from './pages/Applications.jsx';
+import Orgs from './pages/Orgs.jsx';
+import Contacts from './pages/Contacts.jsx';
+import Analysis from './pages/Analysis.jsx';
+import ActionItems from './pages/ActionItems.jsx';
+import Settings from './pages/Settings.jsx';
+import SharedRole from './pages/SharedRole.jsx';
 
-// This is a deliberately minimal placeholder shell. It proves the data layer
-// (load/save/empty state) wires up correctly end to end. The real dashboard
-// UI (Applications kanban, Orgs, Contacts, Analysis, Action items, Settings)
-// gets built out next — see VISION.md for full scope.
-
+// Root: data provider wraps the whole tree (so even the share route could read
+// it if needed), and the router splits the nav-chrome app from the standalone
+// read-only share view.
 export default function App() {
-  const [db, setDb] = useState(emptyDB());
-
-  useEffect(() => {
-    setDb(loadFromLocalStorage());
-  }, []);
-
-  useEffect(() => {
-    saveToLocalStorage(db);
-  }, [db]);
-
   return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 720 }}>
-      <h1>Searchboard</h1>
-      <p style={{ color: '#666' }}>
-        Skeleton running. Data layer wired: {db.apps.length} applications,{' '}
-        {db.orgs.length} orgs, {db.contacts.length} contacts,{' '}
-        {db.analyses.length} analysis entries, {db.todos.length} action items.
-      </p>
-      <p style={{ color: '#999', fontSize: 14 }}>
-        Next: build out the real dashboard UI in Claude Code.
-      </p>
-    </div>
+    <DbProvider>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="applications" element={<Applications />} />
+          <Route path="orgs" element={<Orgs />} />
+          <Route path="contacts" element={<Contacts />} />
+          <Route path="analysis" element={<Analysis />} />
+          <Route path="todos" element={<ActionItems />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+        {/* Standalone, no nav chrome — opened from a "Share this role" link. */}
+        <Route path="share" element={<SharedRole />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </DbProvider>
   );
 }

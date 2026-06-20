@@ -214,6 +214,7 @@ function applyParsed(parsed, { db, form, set, setNewOrgName }) {
   if (parsed.location) set('location', parsed.location);
   if (parsed.fit_notes) set('fitNotes', parsed.fit_notes);
   if (parsed.fit_score) set('fitScore', String(parsed.fit_score));
+  if (parsed.salary) set('salary', parsed.salary);
 
   const orgText = (parsed.org || '').trim();
   if (orgText) {

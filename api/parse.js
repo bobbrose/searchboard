@@ -31,7 +31,8 @@ const SYSTEM_PROMPT = `You extract structured fields from job postings. Always r
   "org": string,
   "location": string,
   "fit_notes": string (2-3 sentences, neutral and factual, summarizing what the role involves and any notable requirements),
-  "fit_score": number (1-5, a rough generic estimate of role seniority/scope, not a personal fit judgment since you don't know the applicant)
+  "fit_score": number (1-5, a rough generic estimate of role seniority/scope, not a personal fit judgment since you don't know the applicant),
+  "salary": string (the stated compensation or pay range, e.g. "$120k-150k" or "$265,000-279,500"; if multiple ranges are given, summarize concisely; empty string if not mentioned)
 }
 If a field can't be determined, use an empty string (or 3 for fit_score). Do not include any text outside the JSON object.`;
 
@@ -60,7 +61,8 @@ export default async function handler(req, res) {
   }
 
   // Hard cap input length — keeps cost bounded and prevents abuse via huge payloads.
-  const trimmed = text.slice(0, 4000);
+  // 8000 chars covers long postings whose salary/comp section sits near the end.
+  const trimmed = text.slice(0, 8000);
 
   try {
     const apiRes = await fetch('https://api.anthropic.com/v1/messages', {

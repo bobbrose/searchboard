@@ -1,0 +1,170 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-4) var(--space-5);
+}
+
+/* Funnel spans the full width; the other two share a row below it. */
+.funnelPanel {
+  grid-column: 1 / -1;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+.panelHead h2 {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.seeAll {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.seeAll:hover {
+  color: var(--accent-text);
+}
+
+/* Funnel bars */
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.funnelRow {
+  display: grid;
+  grid-template-columns: 110px 1fr 28px;
+  align-items: center;
+  gap: var(--space-3);
+}
+.funnelLabel {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 550;
+}
+.barTrack {
+  background: var(--surface-2);
+  border-radius: 999px;
+  height: 22px;
+  overflow: hidden;
+}
+.bar {
+  height: 100%;
+  border-radius: 999px;
+  min-width: 2px;
+  transition: width 0.3s ease;
+}
+.bar_neutral {
+  background: var(--border-strong);
+}
+.bar_accent {
+  background: var(--accent);
+}
+.bar_warm {
+  background: var(--warn);
+}
+.bar_ok {
+  background: var(--ok);
+}
+.bar_done {
+  background: var(--text-faint);
+}
+.funnelCount {
+  text-align: right;
+  font-weight: 650;
+  font-size: 14px;
+}
+
+/* Action items panel */
+.todoList,
+.recentList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.todoItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.todoItem:last-child {
+  border-bottom: none;
+}
+.todoItem:hover .todoTitle {
+  color: var(--accent-text);
+}
+.todoOverdue .todoTitle {
+  color: var(--danger);
+}
+.todoTitle {
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.allClear {
+  color: var(--ok);
+  font-weight: 550;
+  margin: var(--space-2) 0;
+}
+
+/* Recent activity */
+.recentItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.recentItem:last-child {
+  border-bottom: none;
+}
+.recentIcon {
+  width: 18px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.recentLabel {
+  flex: 1;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recentItem:hover .recentLabel {
+  color: var(--accent-text);
+}
+.recentDate {
+  font-size: 12px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

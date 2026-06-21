@@ -1,6 +1,9 @@
 # Spec — Import a role from an ATS URL (+ state-aware salary)
 
-> Status: **proposed** — awaiting review. Nothing in this spec is implemented yet.
+> Status: **implemented** (2026-06-21, commit `94f0fdb`). Shipped with three
+> changes from the original proposal, noted inline: Ashby is in v1, the paste
+> panel shows the URL field and textarea *together* (no toggle), and home state
+> defaults to blank.
 
 ## Context
 
@@ -41,7 +44,14 @@ returns clean JSON (title, location, and a `content` field with the full JD incl
     `.location.name`, `.content` (HTML-encoded; strip tags + decode entities to plain text).
 - **Lever** — `jobs.lever.co/{org}/{id}` → `https://api.lever.co/v0/postings/{org}/{id}?mode=json`
   (`.text` / `.descriptionPlain`, `.categories.location`).
-- **Ashby** — documented as an easy follow-on (its posting API has a different shape); not in v1.
+- **Ashby** *(shipped in v1)* — `jobs.ashbyhq.com/{org}/{job-uuid}[/application]`. Ashby has no
+  single-posting endpoint, so we fetch the whole board
+  `https://api.ashbyhq.com/posting-api/job-board/{org}?includeCompensation=true` and pick the job
+  by id (carried through the resolver as `jobId`). Fields: `.title`, `.location`,
+  `.descriptionPlain` (fallback `.descriptionHtml`), and `.compensation.compensationTierSummary`
+  (appended to the description, since comp lives in a structured field, not the body). Note: Ashby
+  exposes a single posted range, not per-region bands, so state-aware salary has nothing to select
+  there — it returns that one range.
 
 ### Endpoint changes — `api/parse.js`
 
@@ -64,9 +74,9 @@ Extend the existing handler (the `{ text }` path stays unchanged):
 
 ### Client changes — `src/forms/ApplicationForm.jsx`
 
-- In `PasteJdPanel`, add a small mode toggle: **From URL** | **Paste text** (default to URL).
-  - URL mode: a `url` input + "Fetch & fill" button → `POST /api/parse { url }`.
-  - Text mode: the existing textarea flow.
+- In `PasteJdPanel`, show **both** a `url` input and the description textarea together (no toggle —
+  changed from the original proposal). Parse whichever is filled; a URL takes priority and disables
+  the textarea while present. "Fetch & fill" → `POST /api/parse { url }` or `{ text }`.
 - Both modes: same `canUseParseToday()` gate, `recordParseUse()` on success, and `applyParsed()`
   (which already maps title/org/location/fit_notes/fit_score/salary).
 - On successful URL import, also set the form's `link` field to the pasted URL (free metadata).
@@ -126,11 +136,12 @@ Run via `set -a; source .env.local; set +a; vercel dev --listen 3000`.
 
 ## Out of scope
 
-LinkedIn / arbitrary-URL fetch (needs the browser-extension path), Ashby (easy follow-on),
-auto-detecting home state from anything other than the Settings field.
+LinkedIn / arbitrary-URL fetch (needs the browser-extension path), auto-detecting home state from
+anything other than the Settings field.
 
-## Open decisions (your call before build)
+## Decisions (resolved at build)
 
-1. **Default paste-panel mode** — *From URL* (proposed) or *Paste text*?
-2. **Providers in v1** — Greenhouse + Lever (proposed), or add Ashby now?
-3. **Prefill home state to `CO`** out of the box, or leave blank to set in Settings?
+1. **Paste-panel layout** — URL field and textarea shown *together*, parse whichever is filled (no
+   mode toggle).
+2. **Providers in v1** — Greenhouse + Lever + Ashby.
+3. **Home state** — defaults to blank; the user sets it in Settings → Profile.

@@ -26,8 +26,41 @@
   border-radius: var(--radius);
 }
 
+.pasteLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 550;
+  margin-bottom: var(--space-2);
+}
+
+.pasteUrl {
+  width: 100%;
+  background: var(--surface);
+}
+
+.pasteOr {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-3) 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pasteOr::before,
+.pasteOr::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
 .pasteArea {
   background: var(--surface);
+}
+.pasteArea:disabled {
+  opacity: 0.5;
 }
 
 .pasteError {

@@ -87,7 +87,10 @@ export default function ApplicationForm({ app, onClose }) {
       }
     >
       <PasteJdPanel
-        onParsed={parsed => applyParsed(parsed, { db, form, set, setNewOrgName })}
+        userState={db.profile?.homeState}
+        onParsed={(parsed, meta) =>
+          applyParsed(parsed, { db, form, set, setNewOrgName, meta })
+        }
       />
 
       <form id="application-form" onSubmit={handleSubmit}>
@@ -209,12 +212,14 @@ export default function ApplicationForm({ app, onClose }) {
 
 // Merge a parsed JD into the current form. Matches the parsed org name against
 // existing orgs (case-insensitive); falls back to staging a new org.
-function applyParsed(parsed, { db, form, set, setNewOrgName }) {
+function applyParsed(parsed, { db, form, set, setNewOrgName, meta }) {
   if (parsed.title) set('title', parsed.title);
   if (parsed.location) set('location', parsed.location);
   if (parsed.fit_notes) set('fitNotes', parsed.fit_notes);
   if (parsed.fit_score) set('fitScore', String(parsed.fit_score));
   if (parsed.salary) set('salary', parsed.salary);
+  // A URL import gives us the posting link for free — keep an existing one if set.
+  if (meta?.url && !form.link) set('link', meta.url);
 
   const orgText = (parsed.org || '').trim();
   if (orgText) {
@@ -231,22 +236,33 @@ function applyParsed(parsed, { db, form, set, setNewOrgName }) {
 }
 
 // --- Paste-a-JD panel ------------------------------------------------------
-function PasteJdPanel({ onParsed }) {
+// Two ways to auto-fill, shown together: paste a job-board URL (Greenhouse /
+// Lever) or paste the full description. Whichever is filled gets parsed — a URL
+// takes priority since it also gives us the posting link for free.
+function PasteJdPanel({ onParsed, userState }) {
   const [open, setOpen] = useState(false);
+  const [url, setUrl] = useState('');
   const [text, setText] = useState('');
   const [status, setStatus] = useState('idle'); // idle | loading | error
   const [error, setError] = useState('');
   const canParse = canUseParseToday();
 
+  const hasInput = url.trim() || text.trim();
+
   async function parse() {
-    if (!text.trim()) return;
+    if (!hasInput) return;
+    const useUrl = !!url.trim();
     setStatus('loading');
     setError('');
     try {
       const res = await fetch('/api/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
+        body: JSON.stringify(
+          useUrl
+            ? { url: url.trim(), userState }
+            : { text, userState }
+        )
       });
       const data = await res.json();
       if (!res.ok) {
@@ -255,9 +271,10 @@ function PasteJdPanel({ onParsed }) {
         return;
       }
       recordParseUse();
-      onParsed(data);
+      onParsed(data, { url: useUrl ? url.trim() : '' });
       setStatus('idle');
       setOpen(false);
+      setUrl('');
       setText('');
     } catch {
       setStatus('error');
@@ -271,11 +288,11 @@ function PasteJdPanel({ onParsed }) {
         <div>
           <strong>Have the job posting?</strong>{' '}
           <span className={styles.pasteHint}>
-            Paste it and we'll fill in the fields for you.
+            Paste a link or the description and we'll fill in the fields for you.
           </span>
         </div>
         <button type="button" className="btn btn--sm" onClick={() => setOpen(true)}>
-          ✦ Paste a job description
+          ✦ Auto-fill from a job posting
         </button>
       </div>
     );
@@ -283,13 +300,25 @@ function PasteJdPanel({ onParsed }) {
 
   return (
     <div className={styles.pastePanel}>
+      <label className={styles.pasteLabel}>Paste a job-posting URL</label>
+      <input
+        type="url"
+        className={styles.pasteUrl}
+        value={url}
+        onChange={e => setUrl(e.target.value)}
+        placeholder="https://…  (Greenhouse or Lever)"
+        autoFocus
+      />
+      <div className={styles.pasteOr}>
+        <span>or paste the full description</span>
+      </div>
       <textarea
         className={styles.pasteArea}
         value={text}
         onChange={e => setText(e.target.value)}
         placeholder="Paste the full job description here…"
         rows={6}
-        autoFocus
+        disabled={!!url.trim()}
       />
       {error && <p className={styles.pasteError}>{error}</p>}
       {!canParse && (
@@ -313,9 +342,9 @@ function PasteJdPanel({ onParsed }) {
           type="button"
           className="btn btn--primary btn--sm"
           onClick={parse}
-          disabled={!text.trim() || status === 'loading' || !canParse}
+          disabled={!hasInput || status === 'loading' || !canParse}
         >
-          {status === 'loading' ? 'Parsing…' : 'Parse & fill'}
+          {status === 'loading' ? 'Working…' : 'Fetch & fill'}
         </button>
       </div>
     </div>

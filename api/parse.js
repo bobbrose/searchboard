@@ -4,6 +4,14 @@
 // Scope is intentionally narrow: extract structured fields from a pasted job description.
 // No open-ended chat, no arbitrary prompts from the client — keeps cost per-call small
 // and bounded, and limits what a misuse attempt could even ask the model to do.
+//
+// Two ways in, same extraction: the client sends either { text } (a pasted JD)
+// or { url } (a job-posting URL). For a URL we NEVER fetch the user's URL — we
+// resolve it to a trusted ATS API host via the allowlist in _ats.js, fetch
+// that, and feed the resulting text through the identical extraction call. See
+// api/_ats.js for the SSRF-by-construction design.
+
+import { resolveAtsUrl, atsPayloadToText } from './_ats.js';
 
 // --- very simple in-memory rate limiter ---------------------------------
 // NOTE: Vercel serverless functions are stateless per-instance, so this is a
@@ -36,6 +44,56 @@ const SYSTEM_PROMPT = `You extract structured fields from job postings. Always r
 }
 If a field can't be determined, use an empty string (or 3 for fit_score). Do not include any text outside the JSON object.`;
 
+// Appended only when the client supplies a home state. Lets the model pick the
+// region-specific pay band instead of summarizing "varies by state".
+const STATE_SALARY_RULE = `\nFor "salary": if the posting lists location- or state-specific pay ranges and a user state is provided below, return the single range that matches that state. Otherwise summarize the range(s) concisely.`;
+
+const ATS_TIMEOUT_MS = 5000;
+
+// Resolve { url } to plain JD text via the ATS allowlist. Throws an Error whose
+// .status is the HTTP code to return: 400 for an unsupported URL (no fetch
+// happens), 502 for an ATS that's unreachable or returns junk.
+async function fetchAtsText(url) {
+  const resolved = resolveAtsUrl(url);
+  if (!resolved) {
+    const err = new Error(
+      "That URL isn't from a supported job board (Greenhouse, Lever). Paste the description instead."
+    );
+    err.status = 400;
+    throw err;
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ATS_TIMEOUT_MS);
+  let data;
+  try {
+    const atsRes = await fetch(resolved.apiUrl, { signal: controller.signal });
+    if (!atsRes.ok) {
+      throw new Error(`ATS responded ${atsRes.status}`);
+    }
+    data = await atsRes.json();
+  } catch (e) {
+    console.error('ATS fetch failed:', resolved.apiUrl, e?.message);
+    const err = new Error(
+      "Couldn't read that job posting. Paste the description instead."
+    );
+    err.status = 502;
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+
+  const text = atsPayloadToText(resolved.provider, data, resolved.jobId);
+  if (!text) {
+    const err = new Error(
+      "That posting didn't contain a description we could read. Paste it instead."
+    );
+    err.status = 502;
+    throw err;
+  }
+  return text;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -54,15 +112,37 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { text } = req.body || {};
-  if (!text || typeof text !== 'string') {
-    res.status(400).json({ error: 'Missing job posting text.' });
+  const { text, url, userState } = req.body || {};
+
+  // Resolve the JD text from either a pasted body or an ATS URL. The URL path
+  // can fail before we ever call Anthropic (unsupported URL = no fetch).
+  let source;
+  if (typeof url === 'string' && url.trim()) {
+    try {
+      source = await fetchAtsText(url.trim());
+    } catch (e) {
+      res.status(e.status || 502).json({ error: e.message });
+      return;
+    }
+  } else if (typeof text === 'string' && text.trim()) {
+    source = text;
+  } else {
+    res.status(400).json({ error: 'Provide a job posting URL or pasted text.' });
     return;
   }
 
   // Hard cap input length — keeps cost bounded and prevents abuse via huge payloads.
   // 8000 chars covers long postings whose salary/comp section sits near the end.
-  const trimmed = text.slice(0, 8000);
+  const trimmed = source.slice(0, 8000);
+
+  // Only a short state string ever leaves the browser, transiently, alongside
+  // the JD — consistent with the existing transient-text model.
+  const state =
+    typeof userState === 'string' && userState.trim()
+      ? userState.trim().slice(0, 40)
+      : '';
+  const system = state ? SYSTEM_PROMPT + STATE_SALARY_RULE : SYSTEM_PROMPT;
+  const userMessage = state ? `User home location: ${state}\n\n${trimmed}` : trimmed;
 
   try {
     const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -75,8 +155,8 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 500,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: trimmed }]
+        system,
+        messages: [{ role: 'user', content: userMessage }]
       })
     });
 

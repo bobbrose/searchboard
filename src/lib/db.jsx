@@ -87,7 +87,18 @@ export function DbProvider({ children }) {
       setDb({ ...emptyDB(), ...next, lastSaved: now() });
     }
 
-    return { add, update, upsert, remove, replaceAll };
+    // Merge a patch into the top-level `db.profile` (e.g. { homeState }).
+    // Lives alongside the collections rather than inside one; store.js's
+    // shallow-merge load/save round-trips this extra key untouched.
+    function setProfile(patch) {
+      setDb(prev => ({
+        ...prev,
+        profile: { ...prev.profile, ...patch },
+        lastSaved: now()
+      }));
+    }
+
+    return { add, update, upsert, remove, replaceAll, setProfile };
   }, []);
 
   const value = useMemo(() => ({ db, ...api }), [db, api]);

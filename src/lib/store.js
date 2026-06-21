@@ -9,6 +9,7 @@ export const STAGES = ['Researching', 'Applied', 'Interviewing', 'Offer', 'Close
 
 export const ANALYSIS_TYPES = [
   'Pre-application research',
+  'Fit scoring',
   'Post-interview debrief',
   'Strategy note',
   'Conversation summary',
@@ -104,26 +105,51 @@ export function decodeShareableApp(encoded) {
   }
 }
 
-// --- Rate-limit token for the shared /api/parse endpoint -------------------
-// Client-side soft cap so a single browser doesn't hammer the shared key.
-// The server-side limiter in api/parse.js is the real backstop.
-const PARSE_LIMIT_KEY = 'searchboard_parse_count_v1';
-const DAILY_PARSE_LIMIT = 15;
+// --- Client-side daily caps for the shared Anthropic endpoints -------------
+// Soft per-browser caps so a single browser doesn't hammer the shared key. The
+// server-side limiter in api/_ratelimit.js is the real backstop. One generic
+// counter, one bucket (localStorage key) per endpoint.
+const DAILY_LIMITS = {
+  parse: { key: 'searchboard_parse_count_v1', limit: 15 },
+  score: { key: 'searchboard_score_count_v1', limit: 25 }
+};
 
-export function canUseParseToday() {
-  const today = new Date().toISOString().slice(0, 10);
-  const raw = localStorage.getItem(PARSE_LIMIT_KEY);
-  const record = raw ? JSON.parse(raw) : { date: today, count: 0 };
-  if (record.date !== today) return true;
-  return record.count < DAILY_PARSE_LIMIT;
+function today() {
+  return new Date().toISOString().slice(0, 10);
 }
 
-export function recordParseUse() {
-  const today = new Date().toISOString().slice(0, 10);
-  const raw = localStorage.getItem(PARSE_LIMIT_KEY);
-  const record = raw ? JSON.parse(raw) : { date: today, count: 0 };
-  const updated = record.date === today
-    ? { date: today, count: record.count + 1 }
-    : { date: today, count: 1 };
-  localStorage.setItem(PARSE_LIMIT_KEY, JSON.stringify(updated));
+function readCount(storageKey) {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return 0;
+    const rec = JSON.parse(raw);
+    return rec.date === today() ? rec.count : 0;
+  } catch {
+    return 0;
+  }
 }
+
+// Generic: how many of `bucket` ('parse' | 'score') have been used today.
+export function usedToday(bucket) {
+  return readCount(DAILY_LIMITS[bucket].key);
+}
+
+// Generic: is there room left in `bucket` today?
+export function canUseToday(bucket) {
+  return usedToday(bucket) < DAILY_LIMITS[bucket].limit;
+}
+
+// Generic: record one use of `bucket`.
+export function recordUse(bucket) {
+  const { key } = DAILY_LIMITS[bucket];
+  localStorage.setItem(
+    key,
+    JSON.stringify({ date: today(), count: readCount(key) + 1 })
+  );
+}
+
+export const dailyLimit = bucket => DAILY_LIMITS[bucket].limit;
+
+// Back-compat thin wrappers for the existing paste-a-JD callers.
+export const canUseParseToday = () => canUseToday('parse');
+export const recordParseUse = () => recordUse('parse');

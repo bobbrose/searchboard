@@ -4,6 +4,29 @@
   gap: var(--space-4);
 }
 
+.setupBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  background: var(--accent-soft);
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius);
+}
+
+.setupHint {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.setupActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);

@@ -93,7 +93,7 @@ export function DbProvider({ children }) {
     function setProfile(patch) {
       setDb(prev => ({
         ...prev,
-        profile: { ...prev.profile, ...patch },
+        profile: { ...prev.profile, ...patch, updatedAt: now() },
         lastSaved: now()
       }));
     }

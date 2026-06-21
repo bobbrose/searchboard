@@ -76,6 +76,41 @@
   margin-top: var(--space-3);
 }
 
+/* Fit-scoring panel */
+.fitPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.fitHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.fitWorking {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.fitHint {
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 /* Linked contacts checklist */
 .contactList {
   display: flex;

@@ -13,25 +13,9 @@
 
 import { resolveAtsUrl, atsPayloadToText } from './_ats.js';
 
-// --- very simple in-memory rate limiter ---------------------------------
-// NOTE: Vercel serverless functions are stateless per-instance, so this is a
-// best-effort backstop, not a hard guarantee — it resets on cold starts and
-// isn't shared across regions/instances. It still meaningfully blunts bursty
-// abuse from a single source within a warm instance. Combined with the
-// client-side daily token check, this is enough for a friends-and-family
-// scale tool. If usage grows, swap this for a real store (Upstash Redis is
-// the standard low-effort upgrade on Vercel).
-const requestLog = new Map(); // ip -> [timestamps]
-const WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const MAX_PER_WINDOW = 20; // generous per-IP hourly ceiling
+import { isRateLimited, clientIp } from './_ratelimit.js';
 
-function isRateLimited(ip) {
-  const now = Date.now();
-  const timestamps = (requestLog.get(ip) || []).filter(t => now - t < WINDOW_MS);
-  timestamps.push(now);
-  requestLog.set(ip, timestamps);
-  return timestamps.length > MAX_PER_WINDOW;
-}
+const MAX_PER_HOUR = 20; // generous per-IP hourly ceiling for extraction
 
 const SYSTEM_PROMPT = `You extract structured fields from job postings. Always respond with ONLY valid JSON, no markdown formatting, no explanation, no code fences. The JSON schema is exactly:
 {
@@ -100,12 +84,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  const ip =
-    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-    req.socket?.remoteAddress ||
-    'unknown';
+  const ip = clientIp(req);
 
-  if (isRateLimited(ip)) {
+  if (isRateLimited('parse', ip, MAX_PER_HOUR)) {
     res.status(429).json({
       error: 'Rate limit reached. Please try again later, or enter the role manually.'
     });
@@ -181,7 +162,11 @@ export default async function handler(req, res) {
       return;
     }
 
-    res.status(200).json(parsed);
+    // Return the source text we parsed so the client can score it against the
+    // user's criteria without re-fetching (notably for the URL-import path,
+    // where the client never had the JD text). Transient, ignored by field
+    // mappers; the JD is public either way.
+    res.status(200).json({ ...parsed, _source: trimmed });
   } catch (err) {
     console.error('Unhandled error in /api/parse:', err);
     res.status(500).json({ error: 'Something went wrong. Please enter the role manually.' });

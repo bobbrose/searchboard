@@ -9,6 +9,7 @@ import {
   canUseParseToday
 } from '../lib/store.js';
 import { formatDate } from '../lib/dates.js';
+import SearchCriteria from '../forms/SearchCriteria.jsx';
 import styles from './Settings.module.css';
 
 // Mirrors the (unexported) storage key in store.js so we can *display* today's
@@ -28,10 +29,9 @@ function parsesUsedToday() {
 }
 
 export default function Settings() {
-  const { db, replaceAll, setProfile } = useDb();
+  const { db, replaceAll } = useDb();
   const fileRef = useRef(null);
   const [msg, setMsg] = useState(null); // { tone, text }
-  const homeState = db.profile?.homeState || '';
 
   const counts = [
     ['Applications', db.apps.length],
@@ -130,28 +130,7 @@ export default function Settings() {
         </div>
       </section>
 
-      <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Profile</h2>
-        <p className={styles.lead}>
-          Your home state or location tailors salary extraction: when a posting
-          lists region-specific pay ranges, auto-fill returns the one matching
-          you instead of a “varies by state” summary. Only this short string is
-          sent — alongside the posting — when you use auto-fill. Leave blank to
-          opt out.
-        </p>
-        <label className={styles.fieldLabel} htmlFor="homeState">
-          Home state / location
-        </label>
-        <input
-          id="homeState"
-          type="text"
-          className={styles.field}
-          value={homeState}
-          onChange={e => setProfile({ homeState: e.target.value })}
-          placeholder="e.g. CO"
-          maxLength={40}
-        />
-      </section>
+      <SearchCriteria />
 
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>Shared AI parsing</h2>

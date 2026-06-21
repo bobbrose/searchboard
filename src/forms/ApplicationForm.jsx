@@ -1,10 +1,14 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Modal from '../components/Modal.jsx';
 import { Field, TextField, TextArea, SelectField, FieldRow } from '../components/Field.jsx';
 import { useDb, useSelectors } from '../lib/db.jsx';
 import { STAGES } from '../lib/store.js';
-import { canUseParseToday, recordParseUse } from '../lib/store.js';
+import { canUseParseToday, recordParseUse, canUseToday, recordUse } from '../lib/store.js';
+import { hasCriteria, checkHardFilters, summarizeFit } from '../lib/fit.js';
 import { buildShareUrl } from '../lib/share.js';
+import FitVerdict from '../components/FitVerdict.jsx';
+import RefineCriteria from '../components/RefineCriteria.jsx';
 import styles from './ApplicationForm.module.css';
 
 const NEW_ORG = '__new__';
@@ -30,7 +34,61 @@ export default function ApplicationForm({ app, onClose }) {
   }));
   const [newOrgName, setNewOrgName] = useState('');
 
+  // Fit scoring (auto-runs after a JD is parsed; persisted as an Analysis
+  // entry on submit). `fitStatus`: idle | scoring | done | error | nocriteria | limit.
+  const [fit, setFit] = useState(null);
+  const [fitStatus, setFitStatus] = useState('idle');
+  const [fitError, setFitError] = useState('');
+  const [lastJd, setLastJd] = useState(''); // kept so refinement can re-score
+
   const set = (key, value) => setForm(f => ({ ...f, [key]: value }));
+
+  // Score a parsed JD against the user's criteria. Hard filters are checked in
+  // the browser first — a trip yields an instant verdict with no API call.
+  async function runScoring({ jdText, salary, location }) {
+    if (!jdText) return;
+    setLastJd(jdText);
+    setFit(null);
+    setFitError('');
+
+    if (!hasCriteria(db.profile)) {
+      setFitStatus('nocriteria');
+      return;
+    }
+
+    const hard = checkHardFilters(db.profile, { salary, jdText, location });
+    if (hard) {
+      setFit(hard);
+      setFitStatus('done');
+      return;
+    }
+
+    if (!canUseToday('score')) {
+      setFitStatus('limit');
+      return;
+    }
+
+    setFitStatus('scoring');
+    try {
+      const res = await fetch('/api/score-fit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jdText, profile: db.profile })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setFitStatus('error');
+        setFitError(data.error || 'Could not score this role.');
+        return;
+      }
+      recordUse('score');
+      setFit(data);
+      setFitStatus('done');
+    } catch {
+      setFitStatus('error');
+      setFitError('Network error while scoring.');
+    }
+  }
 
   // Contacts to offer for linking: those at the selected org, plus any already
   // linked (so an existing link never silently disappears from the list).
@@ -63,7 +121,22 @@ export default function ApplicationForm({ app, onClose }) {
       orgId,
       fitScore: form.fitScore === '' ? null : Number(form.fitScore)
     };
-    upsert('apps', record);
+    const saved = upsert('apps', record);
+
+    // Persist a fresh fit verdict as a first-class Analysis entry, linked to
+    // the (possibly just-created) app. Only a verdict scored this session is
+    // written — opening an existing app and saving without re-scoring won't.
+    if (fit) {
+      add('analyses', {
+        type: 'Fit scoring',
+        title: `Fit: ${form.title || 'role'}`,
+        appId: saved.id,
+        orgId,
+        body: summarizeFit(fit),
+        fit
+      });
+    }
+
     onClose();
   }
 
@@ -88,9 +161,23 @@ export default function ApplicationForm({ app, onClose }) {
     >
       <PasteJdPanel
         userState={db.profile?.homeState}
-        onParsed={(parsed, meta) =>
-          applyParsed(parsed, { db, form, set, setNewOrgName, meta })
-        }
+        onParsed={(parsed, meta) => {
+          applyParsed(parsed, { db, form, set, setNewOrgName, meta });
+          if (meta.jdText) {
+            runScoring({
+              jdText: meta.jdText,
+              salary: parsed.salary,
+              location: parsed.location
+            });
+          }
+        }}
+      />
+
+      <FitPanel
+        status={fitStatus}
+        fit={fit}
+        error={fitError}
+        onRescore={lastJd ? () => runScoring({ jdText: lastJd, salary: form.salary, location: form.location }) : null}
       />
 
       <form id="application-form" onSubmit={handleSubmit}>
@@ -271,7 +358,12 @@ function PasteJdPanel({ onParsed, userState }) {
         return;
       }
       recordParseUse();
-      onParsed(data, { url: useUrl ? url.trim() : '' });
+      // _source is the exact text the server parsed (the only way URL mode has
+      // the JD text); fall back to the local textarea for paste mode.
+      onParsed(data, {
+        url: useUrl ? url.trim() : '',
+        jdText: data._source || (useUrl ? '' : text)
+      });
       setStatus('idle');
       setOpen(false);
       setUrl('');
@@ -347,6 +439,53 @@ function PasteJdPanel({ onParsed, userState }) {
           {status === 'loading' ? 'Working…' : 'Fetch & fill'}
         </button>
       </div>
+    </div>
+  );
+}
+
+// --- Fit-scoring panel -----------------------------------------------------
+// Shows the auto-run verdict below the paste panel. Saved as an Analysis entry
+// when the form is submitted.
+function FitPanel({ status, fit, error, onRescore }) {
+  if (status === 'idle') return null;
+
+  if (status === 'nocriteria') {
+    return (
+      <div className={styles.fitHint}>
+        Want a fit verdict against your criteria? Set up your{' '}
+        <Link to="/settings">Search Criteria</Link> and the next paste scores
+        automatically.
+      </div>
+    );
+  }
+
+  if (status === 'limit') {
+    return (
+      <div className={styles.fitHint}>
+        Daily fit-scoring limit reached on the shared AI key — resets tomorrow.
+        The role's other fields are still filled in.
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.fitPanel}>
+      <div className={styles.fitHead}>
+        <strong>Fit against your criteria</strong>
+        {onRescore && status !== 'scoring' && (
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onRescore}>
+            Re-score
+          </button>
+        )}
+      </div>
+      {status === 'scoring' && <p className={styles.fitWorking}>Scoring…</p>}
+      {status === 'error' && <p className={styles.pasteError}>{error}</p>}
+      {status === 'done' && fit && (
+        <>
+          <FitVerdict fit={fit} />
+          {onRescore && <RefineCriteria onRefined={onRescore} />}
+        </>
+      )}
     </div>
   );
 }

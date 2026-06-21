@@ -1,11 +1,16 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import Badge from '../components/Badge.jsx';
+import ProfileSetup from '../components/ProfileSetup.jsx';
 import { useDb, useSelectors } from '../lib/db.jsx';
 import { STAGES } from '../lib/store.js';
+import { hasCriteria } from '../lib/fit.js';
 import { byUrgency, dueLabel, isOverdue, formatDate } from '../lib/dates.js';
 import styles from './Dashboard.module.css';
+
+const SETUP_DISMISSED_KEY = 'searchboard_profile_setup_dismissed_v1';
 
 const STAGE_TONE = {
   Researching: 'neutral',
@@ -17,6 +22,10 @@ const STAGE_TONE = {
 
 export default function Dashboard() {
   const { db } = useDb();
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(
+    () => localStorage.getItem(SETUP_DISMISSED_KEY) === '1'
+  );
   const isEmpty =
     db.apps.length === 0 &&
     db.orgs.length === 0 &&
@@ -24,9 +33,40 @@ export default function Dashboard() {
     db.analyses.length === 0 &&
     db.todos.length === 0;
 
+  // Nudge first-run users to set up criteria, but only once they've started
+  // using the tool (not on the empty welcome screen), and never after dismissal.
+  const showSetupBanner = !isEmpty && !dismissed && !hasCriteria(db.profile);
+
+  function dismissBanner() {
+    localStorage.setItem(SETUP_DISMISSED_KEY, '1');
+    setDismissed(true);
+  }
+
   return (
     <>
       <PageHeader title="Dashboard" subtitle="Your search at a glance" />
+
+      {showSetupBanner && (
+        <div className={styles.setupBanner}>
+          <div>
+            <strong>Personalize your fit scoring.</strong>{' '}
+            <span className={styles.setupHint}>
+              Set your target roles, comp floor, and deal-breakers — and every
+              role you paste gets scored against them.
+            </span>
+          </div>
+          <div className={styles.setupActions}>
+            <button className="btn btn--sm btn--primary" onClick={() => setSetupOpen(true)}>
+              Set up criteria
+            </button>
+            <button className="btn btn--ghost btn--sm" onClick={dismissBanner}>
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
+      {setupOpen && <ProfileSetup onClose={() => setSetupOpen(false)} />}
 
       {isEmpty ? (
         <EmptyState

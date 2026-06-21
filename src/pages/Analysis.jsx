@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PageHeader from '../components/PageHeader.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import Badge from '../components/Badge.jsx';
+import FitVerdict from '../components/FitVerdict.jsx';
 import AnalysisForm from '../forms/AnalysisForm.jsx';
 import { useDb, useSelectors } from '../lib/db.jsx';
 import { ANALYSIS_TYPES } from '../lib/store.js';
@@ -109,7 +110,13 @@ function AnalysisCard({ entry, onEdit }) {
           <h3 className={styles.cardTitle}>{entry.title || 'Untitled'}</h3>
           <span className={styles.date}>{formatDate(entry.updatedAt)}</span>
         </div>
-        {entry.body && <p className={styles.body}>{entry.body}</p>}
+        {entry.fit ? (
+          <div className={styles.fit}>
+            <FitVerdict fit={entry.fit} />
+          </div>
+        ) : (
+          entry.body && <p className={styles.body}>{entry.body}</p>
+        )}
         {(org || app) && (
           <div className={styles.tags}>
             {org && <Badge tone="accent">◳ {org}</Badge>}

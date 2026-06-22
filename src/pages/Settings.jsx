@@ -7,26 +7,12 @@ import {
   importFromFile,
   mergeDB,
   emptyDB,
-  canUseParseToday
+  canUseParseToday,
+  usedToday,
+  dailyLimit
 } from '../lib/store.js';
 import { formatDate } from '../lib/dates.js';
 import styles from './Settings.module.css';
-
-// Mirrors the (unexported) storage key in store.js so we can *display* today's
-// parse usage. Read-only — the counter itself is owned by store.js.
-const PARSE_LIMIT_KEY = 'searchboard_parse_count_v1';
-
-function parsesUsedToday() {
-  try {
-    const today = new Date().toISOString().slice(0, 10);
-    const raw = localStorage.getItem(PARSE_LIMIT_KEY);
-    if (!raw) return 0;
-    const rec = JSON.parse(raw);
-    return rec.date === today ? rec.count : 0;
-  } catch {
-    return 0;
-  }
-}
 
 export default function Settings() {
   const { db, replaceAll } = useDb();
@@ -99,7 +85,8 @@ export default function Settings() {
     setMsg({ tone: 'danger', text: 'All data cleared.' });
   }
 
-  const used = parsesUsedToday();
+  const used = usedToday('parse');
+  const limit = dailyLimit('parse');
   const available = canUseParseToday();
 
   return (
@@ -163,13 +150,12 @@ export default function Settings() {
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>Shared AI parsing</h2>
         <p className={styles.lead}>
-          The “paste a job description” feature uses a shared, rate-limited AI key
-          (see VISION). There's a daily cap per browser so the shared key stays
-          affordable for everyone.
+          The “paste a job description” feature uses a shared, rate-limited AI key.
+          There's a daily cap per browser so the shared key stays affordable for everyone.
         </p>
         <div className={styles.parseStatus}>
           <span>
-            <strong>{used}</strong> parse{used === 1 ? '' : 's'} used today
+            <strong>{used}</strong> of {limit} parse{limit === 1 ? '' : 's'} used today
           </span>
           <Badge tone={available ? 'ok' : 'overdue'}>
             {available ? 'Available' : 'Daily limit reached'}

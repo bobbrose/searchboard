@@ -160,7 +160,7 @@ export function decodeShareableApp(encoded) {
 // server-side limiter in api/_ratelimit.js is the real backstop. One generic
 // counter, one bucket (localStorage key) per endpoint.
 const DAILY_LIMITS = {
-  parse: { key: 'searchboard_parse_count_v1', limit: 15 },
+  parse: { key: 'searchboard_parse_count_v1', limit: 50 },
   score: { key: 'searchboard_score_count_v1', limit: 25 },
   resume: { key: 'searchboard_resume_count_v1', limit: 5 }
 };

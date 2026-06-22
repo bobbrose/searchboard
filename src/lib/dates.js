@@ -54,6 +54,16 @@ export function today() {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
+// `n` days from today as a date-only 'YYYY-MM-DD' string (n can be negative).
+// Used to seed a follow-up due date (e.g. "follow up in a week").
+export function daysFromToday(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
 // 'Jun 19, 2026' style. Empty string in, empty string out.
 export function formatDate(value) {
   if (!value) return '';

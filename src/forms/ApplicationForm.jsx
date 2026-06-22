@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Modal from '../components/Modal.jsx';
 import { Field, TextField, TextArea, SelectField, FieldRow } from '../components/Field.jsx';
-import { useDb, useSelectors } from '../lib/db.jsx';
-import { STAGES } from '../lib/store.js';
+import { useDb, useSelectors, normalizeContactLinks } from '../lib/db.jsx';
+import { STAGES, CONTACT_RELATIONS } from '../lib/store.js';
 import { canUseParseToday, recordParseUse, canUseToday, recordUse } from '../lib/store.js';
 import { hasCriteria, checkHardFilters, summarizeFit } from '../lib/fit.js';
 import { buildShareUrl } from '../lib/share.js';
@@ -42,7 +42,12 @@ export default function ApplicationForm({ app, onClose }) {
       link: app?.link || '',
       fitNotes: app?.fitNotes || '',
       fitScore: app?.fitScore ?? '',
-      contactIds: app?.contactIds || [],
+      // Typed links: [{ contactId, relation }]. Normalized so older records
+      // (flat contactIds) load as untyped 'contact' links.
+      contactLinks: normalizeContactLinks(app).map(l => ({
+        contactId: l.contactId,
+        relation: l.relation
+      })),
       appliedDate: app?.appliedDate || '',
       salary: app?.salary || '',
       closeReason: app?.closeReason || ''
@@ -160,20 +165,29 @@ export default function ApplicationForm({ app, onClose }) {
     scoredThisSession ||
     (form.orgId === NEW_ORG && newOrgName.trim() !== '');
 
-  // Contacts to offer for linking: those at the selected org, plus any already
-  // linked (so an existing link never silently disappears from the list).
-  const linkableContacts = db.contacts.filter(
-    c =>
-      (form.orgId && form.orgId !== NEW_ORG && c.orgId === form.orgId) ||
-      form.contactIds.includes(c.id)
+  // Offer ALL contacts for linking — a referrer often doesn't work at the org
+  // they referred you to (the whole point of the feature), so we must not
+  // org-scope this. Contacts at the selected org are simply sorted to the top
+  // for convenience.
+  const linkedId = id => form.contactLinks.some(l => l.contactId === id);
+  const atOrg = c => form.orgId && form.orgId !== NEW_ORG && c.orgId === form.orgId;
+  const linkableContacts = [...db.contacts].sort(
+    (a, b) => (atOrg(b) ? 1 : 0) - (atOrg(a) ? 1 : 0)
   );
 
   function toggleContact(id) {
     set(
-      'contactIds',
-      form.contactIds.includes(id)
-        ? form.contactIds.filter(c => c !== id)
-        : [...form.contactIds, id]
+      'contactLinks',
+      linkedId(id)
+        ? form.contactLinks.filter(l => l.contactId !== id)
+        : [...form.contactLinks, { contactId: id, relation: 'contact' }]
+    );
+  }
+
+  function setContactRelation(id, relation) {
+    set(
+      'contactLinks',
+      form.contactLinks.map(l => (l.contactId === id ? { ...l, relation } : l))
     );
   }
 
@@ -196,6 +210,9 @@ export default function ApplicationForm({ app, onClose }) {
       ...form,
       orgId,
       fitScore: form.fitScore === '' ? null : Number(form.fitScore),
+      // Keep the flat contactIds in sync as a mirror of the typed links, so
+      // readers that haven't migrated (share payload, exports) still resolve.
+      contactIds: form.contactLinks.map(l => l.contactId),
       ...(scored ? { fitVerdict: scored } : {})
     };
     const saved = upsert('apps', record);
@@ -394,32 +411,58 @@ export default function ApplicationForm({ app, onClose }) {
           rows={4}
         />
 
-        {linkableContacts.length > 0 && (
-          <Field
-            label="Linked contacts"
-            hint={
-              form.orgId && form.orgId !== NEW_ORG
-                ? 'Contacts at this org.'
-                : 'Pick an org to see its contacts.'
-            }
-          >
+        <Field
+          label="Linked contacts"
+          hint="Who do you know on this one — and how? A referral is worth recording (they don't have to work here)."
+        >
+          {linkableContacts.length === 0 ? (
+            <p className={styles.contactEmpty}>
+              No contacts yet. Add people on the{' '}
+              <Link to="/contacts">Contacts page</Link> to link who referred you.
+            </p>
+          ) : (
             <div className={styles.contactList}>
-              {linkableContacts.map(c => (
-                <label key={c.id} className={styles.contactItem}>
-                  <input
-                    type="checkbox"
-                    checked={form.contactIds.includes(c.id)}
-                    onChange={() => toggleContact(c.id)}
-                  />
-                  <span>
-                    {c.name}
-                    {c.role ? <span className={styles.contactRole}> · {c.role}</span> : null}
-                  </span>
-                </label>
-              ))}
+              {linkableContacts.map(c => {
+                const linked = linkedId(c.id);
+                const relation =
+                  form.contactLinks.find(l => l.contactId === c.id)?.relation ||
+                  'contact';
+                const meta = [c.role, orgName(c.orgId)].filter(Boolean).join(' · ');
+                return (
+                  <div key={c.id} className={styles.contactItem}>
+                    <label className={styles.contactPick}>
+                      <input
+                        type="checkbox"
+                        checked={linked}
+                        onChange={() => toggleContact(c.id)}
+                      />
+                      <span>
+                        {c.name}
+                        {meta ? (
+                          <span className={styles.contactRole}> · {meta}</span>
+                        ) : null}
+                      </span>
+                    </label>
+                    {linked && (
+                      <select
+                        className={styles.contactRelation}
+                        value={relation}
+                        onChange={e => setContactRelation(c.id, e.target.value)}
+                        aria-label={`How ${c.name} is connected to this job`}
+                      >
+                        {CONTACT_RELATIONS.map(r => (
+                          <option key={r.value} value={r.value}>
+                            {r.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          </Field>
-        )}
+          )}
+        </Field>
       </form>
     </Modal>
   );

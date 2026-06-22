@@ -264,8 +264,10 @@ function KanbanView({ onEdit }) {
 }
 
 function AppCard({ app, onEdit, onMove }) {
-  const { orgName, contactsForApp } = useSelectors();
-  const contacts = contactsForApp(app);
+  const { orgName, contactLinksForApp } = useSelectors();
+  const links = contactLinksForApp(app);
+  const referrers = links.filter(l => l.relation === 'referrer');
+  const others = links.filter(l => l.relation !== 'referrer');
 
   return (
     <article className={styles.card}>
@@ -281,9 +283,14 @@ function AppCard({ app, onEdit, onMove }) {
             <FitBadges fit={app.fitVerdict} />
           </div>
         )}
-        {contacts.length > 0 && (
+        {referrers.length > 0 && (
+          <p className={styles.cardReferral}>
+            ↳ Referred by {referrers.map(l => l.contact.name).join(', ')}
+          </p>
+        )}
+        {others.length > 0 && (
           <p className={styles.cardContacts}>
-            ☺ {contacts.map(c => c.name).join(', ')}
+            ☺ {others.map(l => l.contact.name).join(', ')}
           </p>
         )}
         {app.stage === 'Closed' && app.closeReason && (
@@ -313,7 +320,7 @@ function AppCard({ app, onEdit, onMove }) {
 // --- List ------------------------------------------------------------------
 function ListView({ onEdit }) {
   const { db, remove } = useDb();
-  const { orgName } = useSelectors();
+  const { orgName, contactLinksForApp } = useSelectors();
   const [sort, setSort] = useState({ key: 'updatedAt', dir: 'desc' });
 
   const sorted = [...db.apps].sort((a, b) => {
@@ -350,7 +357,19 @@ function ListView({ onEdit }) {
         <tbody>
           {sorted.map(app => (
             <tr key={app.id} onClick={() => onEdit(app)} className={styles.row}>
-              <td className={styles.roleCell}>{app.title || 'Untitled job'}</td>
+              <td className={styles.roleCell}>
+                {app.title || 'Untitled job'}
+                {(() => {
+                  const refs = contactLinksForApp(app).filter(
+                    l => l.relation === 'referrer'
+                  );
+                  return refs.length ? (
+                    <div className={styles.referralSub}>
+                      ↳ Referred by {refs.map(l => l.contact.name).join(', ')}
+                    </div>
+                  ) : null;
+                })()}
+              </td>
               <td>{orgName(app.orgId)}</td>
               <td>
                 <Badge tone={STAGE_TONE[app.stage]}>{app.stage}</Badge>

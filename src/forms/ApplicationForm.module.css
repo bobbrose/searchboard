@@ -168,19 +168,41 @@
 .contactItem {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-2);
   padding: 4px 6px;
   border-radius: var(--radius-sm);
-  cursor: pointer;
 }
 .contactItem:hover {
   background: var(--surface-2);
 }
-.contactItem input {
+
+/* The clickable name + checkbox; the relation select sits opposite it. */
+.contactPick {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  min-width: 0;
+}
+.contactPick input {
   width: auto;
 }
 
+.contactRelation {
+  width: auto;
+  flex-shrink: 0;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+
 .contactRole {
+  color: var(--text-muted);
+}
+
+.contactEmpty {
+  margin: 0;
+  font-size: 13px;
   color: var(--text-muted);
 }
 

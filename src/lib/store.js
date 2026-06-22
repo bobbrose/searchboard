@@ -25,6 +25,15 @@ export const RELATIONSHIP_TYPES = [
   'Met at event'
 ];
 
+// How a contact is connected to a *specific* job — distinct from the contact's
+// general RELATIONSHIP_TYPE. This is what records "who opened which door":
+// a referrer is the highest-value link in a relationship-driven search.
+export const CONTACT_RELATIONS = [
+  { value: 'referrer', label: 'Referred me' },
+  { value: 'contact', label: 'Contact here' },
+  { value: 'recruiter', label: 'Recruiter for it' }
+];
+
 const STORAGE_KEY = 'searchboard_data_v1';
 
 export function emptyDB() {

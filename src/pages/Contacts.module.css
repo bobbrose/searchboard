@@ -41,9 +41,35 @@
 .name {
   font-weight: 600;
 }
-.role {
+.sub {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* Linked jobs read as pipeline: title + stage, with a referral flagged. */
+.jobLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.jobLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.jobTitle {
+  font-weight: 500;
+}
+.referredTag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ok);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.noLinks {
+  color: var(--text-faint);
 }
 
 .staleCell {

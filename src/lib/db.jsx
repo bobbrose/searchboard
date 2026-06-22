@@ -113,6 +113,15 @@ export function useDb() {
   return ctx;
 }
 
+// Normalize an app's contact links to [{ contactId, relation }]. The typed
+// source of truth is `app.contactLinks`; records created before typed links
+// existed carry only a flat `app.contactIds`, treated here as untyped
+// 'contact' links so the rest of the app sees one consistent shape.
+export function normalizeContactLinks(app) {
+  if (Array.isArray(app?.contactLinks)) return app.contactLinks;
+  return (app?.contactIds || []).map(contactId => ({ contactId, relation: 'contact' }));
+}
+
 // --- Cross-collection selectors -------------------------------------------
 // Hooks so they re-read live state. Kept tiny and derived; no memo needed at
 // this data scale (a personal search, tens-to-hundreds of records).
@@ -128,7 +137,24 @@ export function useSelectors() {
   const appsForOrg = orgId => db.apps.filter(a => a.orgId === orgId);
   const contactsForOrg = orgId => db.contacts.filter(c => c.orgId === orgId);
   const contactsForApp = app =>
-    (app?.contactIds || []).map(contactById).filter(Boolean);
+    normalizeContactLinks(app).map(l => contactById(l.contactId)).filter(Boolean);
+
+  // Typed links from a job to its contacts: [{ contactId, relation, contact }].
+  const contactLinksForApp = app =>
+    normalizeContactLinks(app)
+      .map(l => ({ ...l, contact: contactById(l.contactId) }))
+      .filter(l => l.contact);
+
+  // Reverse: every job a contact is linked to, with this contact's relation to
+  // it — [{ app, relation }]. Lets the Contacts page read relationships as
+  // pipeline ("Maya → Senior PM @ Acme · Interviewing, referred").
+  const appsForContact = contactId =>
+    db.apps
+      .map(app => {
+        const link = normalizeContactLinks(app).find(l => l.contactId === contactId);
+        return link ? { app, relation: link.relation } : null;
+      })
+      .filter(Boolean);
   const analysesForApp = appId => db.analyses.filter(a => a.appId === appId);
   const analysesForOrg = orgId => db.analyses.filter(a => a.orgId === orgId);
 
@@ -160,6 +186,8 @@ export function useSelectors() {
     appsForOrg,
     contactsForOrg,
     contactsForApp,
+    contactLinksForApp,
+    appsForContact,
     analysesForApp,
     analysesForOrg,
     openTodos,

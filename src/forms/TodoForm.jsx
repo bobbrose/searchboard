@@ -16,8 +16,8 @@ export default function TodoForm({ todo, defaults, onClose }) {
   const isEdit = !!todo?.id;
 
   const [form, setForm] = useState(() => ({
-    title: todo?.title || '',
-    dueDate: todo?.dueDate || '',
+    title: todo?.title || defaults?.title || '',
+    dueDate: todo?.dueDate || defaults?.dueDate || '',
     done: todo?.done || false,
     linkedType: todo?.linkedType || defaults?.linkedType || '',
     linkedId: todo?.linkedId || defaults?.linkedId || ''

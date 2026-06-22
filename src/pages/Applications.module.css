@@ -206,6 +206,16 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* A referral is the highest-value link — call it out, not muted. */
+.cardReferral {
+  margin: var(--space-2) 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ok);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* Free-form reason on a Closed card. */
 .cardCloseReason {
   margin: var(--space-2) 0 0;
@@ -279,6 +289,12 @@
 }
 .roleCell {
   font-weight: 600;
+}
+.referralSub {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ok);
 }
 /* Free-form reason shown under the "Closed" stage pill. */
 .closeReason {

@@ -1,27 +1,51 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Modal from '../components/Modal.jsx';
+import Badge from '../components/Badge.jsx';
 import { TextField, TextArea, SelectField, FieldRow, Field } from '../components/Field.jsx';
-import { useDb } from '../lib/db.jsx';
+import { useDb, useSelectors } from '../lib/db.jsx';
 import { RELATIONSHIP_TYPES } from '../lib/store.js';
+import styles from './ContactForm.module.css';
+
+const STAGE_TONE = {
+  Researching: 'neutral',
+  Applied: 'accent',
+  Interviewing: 'warm',
+  Offer: 'ok',
+  Closed: 'done'
+};
 
 // Add/edit a contact. `contact` is the record being edited, or null to create.
 // `defaultOrgId` preselects an org (e.g. when adding from an org's card).
-export default function ContactForm({ contact, defaultOrgId, onClose }) {
+// `onOpenJob(app)` (optional) lets the linked-jobs list jump to a job.
+export default function ContactForm({ contact, defaultOrgId, onClose, onOpenJob }) {
   const { db, upsert } = useDb();
+  const { appsForContact } = useSelectors();
   const isEdit = !!contact?.id;
 
-  const [form, setForm] = useState(() => ({
-    name: contact?.name || '',
-    orgId: contact?.orgId || defaultOrgId || '',
-    role: contact?.role || '',
-    relationshipType: contact?.relationshipType || RELATIONSHIP_TYPES[0],
-    email: contact?.email || '',
-    phone: contact?.phone || '',
-    lastContacted: contact?.lastContacted || '',
-    notes: contact?.notes || ''
-  }));
+  // Jobs this contact is linked to, with their relation (referrer / contact /
+  // recruiter) and current stage — the connective tissue, surfaced on open.
+  const jobs = isEdit ? appsForContact(contact.id) : [];
+
+  // Initial snapshot kept for dirty-tracking, so "Save changes" stays disabled
+  // until something actually changes (matches ApplicationForm).
+  const initialForm = useMemo(
+    () => ({
+      name: contact?.name || '',
+      orgId: contact?.orgId || defaultOrgId || '',
+      role: contact?.role || '',
+      relationshipType: contact?.relationshipType || RELATIONSHIP_TYPES[0],
+      email: contact?.email || '',
+      phone: contact?.phone || '',
+      lastContacted: contact?.lastContacted || '',
+      notes: contact?.notes || ''
+    }),
+    [contact, defaultOrgId]
+  );
+  const [form, setForm] = useState(initialForm);
 
   const set = (key, value) => setForm(f => ({ ...f, [key]: value }));
+
+  const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -38,12 +62,40 @@ export default function ContactForm({ contact, defaultOrgId, onClose }) {
           <button type="button" className="btn" onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" form="contact-form" className="btn btn--primary">
+          <button
+            type="submit"
+            form="contact-form"
+            className="btn btn--primary"
+            disabled={isEdit && !isDirty}
+          >
             {isEdit ? 'Save changes' : 'Add contact'}
           </button>
         </>
       }
     >
+      {jobs.length > 0 && (
+        <div className={styles.jobs}>
+          <span className={styles.jobsLabel}>
+            Linked jobs ({jobs.length})
+          </span>
+          {jobs.map(({ app, relation }) => (
+            <button
+              type="button"
+              key={app.id}
+              className={styles.job}
+              onClick={() => onOpenJob?.(app)}
+              title={onOpenJob ? 'Open this job' : undefined}
+            >
+              {relation === 'referrer' && (
+                <span className={styles.referred}>↳ referred</span>
+              )}
+              <span className={styles.jobTitle}>{app.title || 'Untitled job'}</span>
+              <Badge tone={STAGE_TONE[app.stage]}>{app.stage}</Badge>
+            </button>
+          ))}
+        </div>
+      )}
+
       <form id="contact-form" onSubmit={handleSubmit}>
         <FieldRow>
           <TextField

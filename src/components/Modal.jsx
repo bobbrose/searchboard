@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react';
 import styles from './Modal.module.css';
 
+// Tracks open modals so a single Escape closes only the topmost one (modals can
+// stack — e.g. opening a contact dialog from within the job form).
+const modalStack = [];
+
 // Accessible-enough dialog: closes on Escape and backdrop click, locks body
 // scroll while open, restores focus on close. `title` renders in the header;
 // `footer` is an optional node (usually action buttons).
@@ -10,8 +14,13 @@ export default function Modal({ title, onClose, children, footer, wide = false }
 
   useEffect(() => {
     previouslyFocused.current = document.activeElement;
+    const token = {};
+    modalStack.push(token);
     const onKey = e => {
-      if (e.key === 'Escape') onClose();
+      // Only the topmost modal reacts to Escape.
+      if (e.key === 'Escape' && modalStack[modalStack.length - 1] === token) {
+        onClose();
+      }
     };
     document.addEventListener('keydown', onKey);
     const prevOverflow = document.body.style.overflow;
@@ -20,6 +29,8 @@ export default function Modal({ title, onClose, children, footer, wide = false }
     panelRef.current?.focus();
     return () => {
       document.removeEventListener('keydown', onKey);
+      const i = modalStack.indexOf(token);
+      if (i !== -1) modalStack.splice(i, 1);
       document.body.style.overflow = prevOverflow;
       previouslyFocused.current?.focus?.();
     };

@@ -17,7 +17,9 @@ const STAGE_TONE = {
 // Add/edit a contact. `contact` is the record being edited, or null to create.
 // `defaultOrgId` preselects an org (e.g. when adding from an org's card).
 // `onOpenJob(app)` (optional) lets the linked-jobs list jump to a job.
-export default function ContactForm({ contact, defaultOrgId, onClose, onOpenJob }) {
+// `onSaved(contact)` (optional) fires with the saved record — e.g. so the job
+// form can auto-link a contact just created from it.
+export default function ContactForm({ contact, defaultOrgId, onClose, onOpenJob, onSaved }) {
   const { db, upsert } = useDb();
   const { appsForContact } = useSelectors();
   const isEdit = !!contact?.id;
@@ -49,7 +51,8 @@ export default function ContactForm({ contact, defaultOrgId, onClose, onOpenJob 
 
   function handleSubmit(e) {
     e.preventDefault();
-    upsert('contacts', { ...(contact?.id ? { id: contact.id } : {}), ...form });
+    const saved = upsert('contacts', { ...(contact?.id ? { id: contact.id } : {}), ...form });
+    onSaved?.(saved);
     onClose();
   }
 

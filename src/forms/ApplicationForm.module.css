@@ -168,7 +168,6 @@
 .contactItem {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-2);
   padding: 4px 6px;
   border-radius: var(--radius-sm);
@@ -177,16 +176,29 @@
   background: var(--surface-2);
 }
 
-/* The clickable name + checkbox; the relation select sits opposite it. */
-.contactPick {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  cursor: pointer;
-  min-width: 0;
-}
-.contactPick input {
+/* Checkbox toggles the link; clicking the name opens the contact dialog. */
+.contactCheck {
   width: auto;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.contactName {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.contactName:hover {
+  color: var(--accent-text);
+  text-decoration: underline;
 }
 
 .contactRelation {
@@ -201,9 +213,13 @@
 }
 
 .contactEmpty {
-  margin: 0;
+  margin: 0 0 var(--space-2);
   font-size: 13px;
   color: var(--text-muted);
+}
+
+.addContactBtn {
+  margin-top: var(--space-2);
 }
 
 /* Share + Delete sit together on the left of the footer; the auto margin

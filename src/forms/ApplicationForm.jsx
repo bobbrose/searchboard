@@ -10,6 +10,7 @@ import { buildShareUrl } from '../lib/share.js';
 import { today } from '../lib/dates.js';
 import FitVerdict from '../components/FitVerdict.jsx';
 import InfoDot from '../components/InfoDot.jsx';
+import ContactForm from './ContactForm.jsx';
 import styles from './ApplicationForm.module.css';
 
 const NEW_ORG = '__new__';
@@ -56,6 +57,10 @@ export default function ApplicationForm({ app, onClose }) {
   );
   const [form, setForm] = useState(initialForm);
   const [newOrgName, setNewOrgName] = useState('');
+  // Contact dialog opened from the linked-contacts list:
+  //   { mode: 'new' }                  — create + auto-link to this job
+  //   { mode: 'edit', contact }        — view/edit an existing contact
+  const [contactModal, setContactModal] = useState(null);
 
   // Fit scoring. Auto-runs after a JD is parsed, and can be triggered on demand
   // for any role. An existing verdict (from a prior session) is loaded so it
@@ -413,12 +418,12 @@ export default function ApplicationForm({ app, onClose }) {
 
         <Field
           label="Linked contacts"
-          hint="Who do you know on this one — and how? A referral is worth recording (they don't have to work here)."
+          hint="Who do you know on this one — and how? A referral is worth recording (they don't have to work here). Check to link; click a name for details."
         >
           {linkableContacts.length === 0 ? (
             <p className={styles.contactEmpty}>
-              No contacts yet. Add people on the{' '}
-              <Link to="/contacts">Contacts page</Link> to link who referred you.
+              No contacts yet — add the person who referred you, or anyone
+              connected to this job.
             </p>
           ) : (
             <div className={styles.contactList}>
@@ -430,19 +435,24 @@ export default function ApplicationForm({ app, onClose }) {
                 const meta = [c.role, orgName(c.orgId)].filter(Boolean).join(' · ');
                 return (
                   <div key={c.id} className={styles.contactItem}>
-                    <label className={styles.contactPick}>
-                      <input
-                        type="checkbox"
-                        checked={linked}
-                        onChange={() => toggleContact(c.id)}
-                      />
-                      <span>
-                        {c.name}
-                        {meta ? (
-                          <span className={styles.contactRole}> · {meta}</span>
-                        ) : null}
-                      </span>
-                    </label>
+                    <input
+                      type="checkbox"
+                      className={styles.contactCheck}
+                      checked={linked}
+                      onChange={() => toggleContact(c.id)}
+                      aria-label={`Link ${c.name || 'contact'} to this job`}
+                    />
+                    <button
+                      type="button"
+                      className={styles.contactName}
+                      onClick={() => setContactModal({ mode: 'edit', contact: c })}
+                      title="View contact details"
+                    >
+                      {c.name}
+                      {meta ? (
+                        <span className={styles.contactRole}> · {meta}</span>
+                      ) : null}
+                    </button>
                     {linked && (
                       <select
                         className={styles.contactRelation}
@@ -462,8 +472,39 @@ export default function ApplicationForm({ app, onClose }) {
               })}
             </div>
           )}
+          <button
+            type="button"
+            className={`btn btn--ghost btn--sm ${styles.addContactBtn}`}
+            onClick={() => setContactModal({ mode: 'new' })}
+          >
+            + New contact
+          </button>
         </Field>
       </form>
+
+      {contactModal && (
+        <ContactForm
+          contact={contactModal.mode === 'edit' ? contactModal.contact : null}
+          defaultOrgId={form.orgId && form.orgId !== NEW_ORG ? form.orgId : ''}
+          onSaved={saved => {
+            // A contact created from here is auto-linked to this job.
+            if (contactModal.mode === 'new' && saved?.id) {
+              setForm(f =>
+                f.contactLinks.some(l => l.contactId === saved.id)
+                  ? f
+                  : {
+                      ...f,
+                      contactLinks: [
+                        ...f.contactLinks,
+                        { contactId: saved.id, relation: 'contact' }
+                      ]
+                    }
+              );
+            }
+          }}
+          onClose={() => setContactModal(null)}
+        />
+      )}
     </Modal>
   );
 }

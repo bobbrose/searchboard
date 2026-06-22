@@ -44,7 +44,8 @@ export default function ApplicationForm({ app, onClose }) {
       fitScore: app?.fitScore ?? '',
       contactIds: app?.contactIds || [],
       appliedDate: app?.appliedDate || '',
-      salary: app?.salary || ''
+      salary: app?.salary || '',
+      closeReason: app?.closeReason || ''
     }),
     [app]
   );
@@ -220,9 +221,6 @@ export default function ApplicationForm({ app, onClose }) {
               <DeleteButton app={app} onClose={onClose} />
             </>
           )}
-          <button type="button" className="btn" onClick={onClose}>
-            Close
-          </button>
           <button
             type="submit"
             form="application-form"
@@ -308,6 +306,16 @@ export default function ApplicationForm({ app, onClose }) {
             value={newOrgName}
             onChange={e => setNewOrgName(e.target.value)}
             placeholder="Acme Corp"
+          />
+        )}
+
+        {form.stage === 'Closed' && (
+          <TextArea
+            label="Reason for closing"
+            value={form.closeReason}
+            onChange={e => set('closeReason', e.target.value)}
+            placeholder="Rejected, withdrew, position filled, lost interest…"
+            rows={2}
           />
         )}
 

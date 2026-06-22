@@ -1,78 +1,77 @@
-# Vision: Job Search Dashboard (working title)
+# Vision: Searchboard
 
 ## Problem
 
-Job searching generates four kinds of information that currently live in disconnected places:
+A deliberate, research-heavy job search runs on one question, asked over and over: **does this role actually fit what I want next?** Not "am I qualified" — "is this worth my time, given my comp floor, the kind of work I want, the domains I'll and won't touch, and the deal-breakers I keep re-explaining to recruiters."
 
-1. **Structured tracking data** — applications, stages, contacts, dates — usually shoved into a spreadsheet
-2. **Analysis** — research on an org before you apply, fit reasoning, interview prep, strategic thinking, and the judgment calls that come after a touchpoint: how did that screen actually go, what did you learn, do you still want this one, what homework do you owe yourself before the next round. Without a place for this, the post-interview read either evaporates or gets buried in an email thread you'll never reopen
-3. **Action items** — the concrete, time-sensitive things you owe someone: write a cover letter, send a recruiter your salary requirements, follow up after an interview, prep for a call Thursday. These are different from tracking data because they're urgent and have a clear cost of failure — a stale pipeline stage is just untidy, a dropped action item can cost you the role or the relationship
-4. **The connective tissue between all of the above** — *why* this contact matters to *that* application, what an org's analysis concluded and whether it should change your next move, which open action item is blocking which application from progressing, and whether last week's interview debrief should change this application's stage or priority
+In practice that judgment is implicit and scattered. The criteria live in your head and drift; you re-litigate the same trade-offs on every posting; the reasoning behind "I passed on that one" evaporates. Generic job-search CRMs (Huntr, Teal, Careerflow) track *stages and dates* well but treat fit as a vibe — a star rating at best. Notes apps hold reasoning but have no concept of a pipeline to anchor it to. Nothing makes your own criteria explicit and then scores each role against them, consistently, so the judgment is written down and repeatable.
 
-No existing tool holds all four together. Job-search CRMs (Huntr, Teal, Careerflow) handle #1 well and sometimes bolt on basic reminders, but treat analysis and action items as afterthought fields, not first-class, surfaced objects. Generic notes apps and to-do lists handle #2 and #3 separately but have no concept of an application or a pipeline to anchor them to. Nothing connects all three to each other.
+Around that core sit the supporting facts of a real search: the **organizations** you're evaluating, the **contacts** you're building relationships with, the **analysis** you accumulate, and the **action items** you owe people. They matter — but they orbit the central act of judging fit.
 
 ## Who this is for
 
-People doing a **deliberate, research-heavy job search** — not high-volume "spray and pray" applying. The kind of search where you're evaluating organizational fit, building real relationships with contacts, and want a written trail of your own thinking so you can act on it consistently. Initially: one person (you), shared with friends and family. Eventually: anyone who searches this way.
+People doing a **deliberate, research-heavy job search** — not high-volume "spray and pray" applying. The kind of search where you have specific, non-obvious criteria (a comp floor, a leadership-vs-hands-on-coding balance, domains you'll avoid), you're evaluating organizational fit, you're building real relationships, and you want a written trail of your own thinking so you can act on it consistently. Initially: one person (you), shared with friends and family. Eventually: anyone who searches this way.
 
 ## What it is
 
-A single-page web app, no login required, that gives you one dashboard for:
-- **Applications** — tracked by stage, with fit notes attached
-- **Organizations** — research and analysis on each org you're evaluating
-- **Contacts** — people, relationship type, and follow-up status
-- **Analysis** — research and debrief entries, explicitly tagged by moment (*pre-application research*, *post-interview debrief*, *strategy note*, *conversation summary*, *other*), linkable to an org and/or application
-- **Action items** — time-sensitive TODOs with due dates, linkable to an application/org/contact, surfaced by urgency
+A single-page web app, no login required, built around **Jobs scored against your explicit Fit Criteria**:
 
-It is local-first: your data is a JSON file you control. Upload it to resume a session, download it to save, or paste raw text (a job description, notes) to start populating fresh. No account, no database, no server-side storage of your personal tracking data.
+- **Jobs** — the full-screen home. Roles tracked by stage in a kanban or list view, each carrying its fit verdict. Paste a job description (or a Greenhouse/Lever URL) to populate the fields.
+- **Fit Criteria** — a living profile of what you want next, edited any time:
+  - **Hard filters** (comp floor, remote requirement, excluded domains, IC-coding balance, location exceptions) — deal-breakers checked **instantly in your browser** before any AI call, so a role that trips one is marked "pass" for free.
+  - **Soft preferences** (product-vs-infra leaning, company attributes, differentiators, red-flag patterns) — judgment calls the AI weighs.
+  - Seedable from a pasted résumé.
+- **Fit scoring** — on demand, score any job against your criteria. The result is a two-axis verdict — *fit* (close / partial / miss) and recommended *action* (apply / wait / pass) — with short, per-dimension reasoning, like a trusted recruiter's honest read. Action can diverge from fit (a great role with a red flag; a partial fit worth applying anyway), and when it does, the reasoning says why.
+- **Orgs & Contacts** — the companies you're evaluating and the people in your search, linked back to jobs. Reached from the hamburger menu, alongside Fit Criteria and Settings.
 
-The one exception: a shared, rate-limited AI parsing endpoint (see Architecture) so anyone can try the "paste a JD and have it parsed" flow without needing their own API key. Only the JD text passes through this endpoint, transiently, and it is not logged or stored.
+It is local-first: your data is a JSON file you control. Export to back up or move devices, import (merge) to combine, or paste raw text to start populating. No account, no database, no server-side storage of your personal tracking data.
+
+The one exception: shared, rate-limited AI endpoints (see Architecture) so anyone can try the paste-to-populate, fit-scoring, and résumé-seeding flows without their own API key. Only the pasted text passes through, transiently — never logged or stored.
 
 ## What it is not
 
-- Not a job board or listing aggregator — it doesn't crawl job postings for you
-- Not a multi-user collaboration tool (v1) — it's single-player, file-based
-- Not an applicant tracking system for *employers* — despite the acronym overlap, this tracks *your* applications, not candidates
+- Not a job board or listing aggregator — it doesn't crawl postings for you (it can resolve a Greenhouse/Lever URL you paste, nothing more).
+- Not a multi-user collaboration tool — it's single-player, file-based.
+- Not an applicant tracking system for *employers* — despite the acronym overlap, this tracks *your* jobs, not candidates.
 
 ## Core principles
 
-1. **Your data is a file, not a database row.** Privacy by architecture, not by policy.
-2. **Analysis is a first-class object**, not a notes field bolted onto a tracker.
-3. **Action items are surfaced, not buried.** Shown prominently on the dashboard, sorted by urgency, not a checkbox list you have to go looking for.
-4. **No login for v1.** Friction-free for anyone to try.
-5. **Useful immediately, sheddable later.** If you stop using it, your data is a portable JSON file you can take anywhere — not lock-in.
-6. **Shared AI access is a privilege, not a blank check.** Rate-limited, scoped to one cheap task (structured extraction), never open-ended chat, never storing what's parsed.
+1. **Fit is explicit and scored, not a vibe.** Your criteria are written down and every role is judged against *them* — never a judgment of you or the role, just the degree of overlap, and why.
+2. **Cheap judgments happen in the browser.** Hard filters are pure-client checks; the shared AI key is spent only on the soft, contextual calls a boolean can't make.
+3. **Your data is a file, not a database row.** Privacy by architecture, not by policy.
+4. **No login.** Friction-free for anyone to try.
+5. **Useful immediately, sheddable later.** Stop using it and your data is a portable JSON file — not lock-in.
+6. **Shared AI access is a privilege, not a blank check.** Rate-limited, scoped to a few cheap tasks (structured extraction, fit scoring, résumé seeding), never open-ended chat, never storing what's parsed, and never fetching arbitrary user-supplied URLs.
 
 ## Architecture
 
-- **Frontend**: static React app (Vite), deployed on Vercel
-- **Backend**: one Vercel serverless function (`/api/parse`) holding the Anthropic API key server-side. Proxies a single, tightly-scoped prompt — "extract structured fields from this job description" — never open-ended chat. This keeps cost per-call small and predictable (validated by real-world precedent: plantpicker.app runs a similar shared-key, no-login model at a few dollars a month).
-- **Rate limiting**: a daily cap per browser (local token) backed by a server-side IP-based limit, so the shared key can't be drained by one bad actor or a link going viral.
-- **Storage**: none server-side. Upload/download JSON to persist or resume a session. Paste raw text to start fresh.
-- **Share-a-role**: a single application/org record is serialized and base64-encoded into a URL query parameter. Opening the link renders a read-only view — no server storage involved, consistent with the file-not-database principle.
-- **Repo**: GitHub (your account)
+- **Frontend**: static React app (Vite + React Router), deployed on Vercel.
+- **Backend**: small Vercel serverless functions holding the Anthropic API key server-side, each a single tightly-scoped prompt — never open-ended chat:
+  - `/api/parse` — extract structured fields from a JD (or an allowlisted Greenhouse/Lever URL).
+  - `/api/score-fit` — personalized fit verdict from criteria + JD.
+  - `/api/parse-resume` — résumé → Fit Criteria seed values.
+- **Rate limiting**: a daily cap per browser for each task, backed by a best-effort server-side per-IP limiter, so the shared key can't be drained by one bad actor or a link going viral.
+- **Storage**: none server-side. Export/import JSON to persist, move, or merge; paste raw text to start fresh.
+- **Share-a-job**: a single job record is base64-encoded into a URL query parameter; opening the link renders a read-only view — no server storage, consistent with the file-not-database principle.
+- **Repo**: GitHub.
 
-## V1 scope
+## Current state
 
-- Add/edit applications, orgs, contacts
-- Analysis entries with an explicit moment/type field, linkable to an org and/or application
-- Action items: title, due date, linked entity, done/not-done; dashboard view sorted by urgency, overdue first
-- Kanban + list views for applications
-- Paste-to-populate from raw JD text via the shared, rate-limited `/api/parse` endpoint
-- Upload/download JSON to persist a session
-- Share a single role via a self-contained link (no server storage)
-- Deployed, shareable URL, works on desktop and mobile browsers
+- **Built and in use**: Jobs (kanban + list, auto applied-date), Fit Criteria editor, on-demand fit scoring, résumé seeding, Orgs, Contacts, paste-to-populate (incl. ATS URL), share-a-job, JSON export/import (merge).
+- **In the model but not surfaced**: Analysis still accrues — each fit scoring writes a timeline entry — but there's no dedicated Analysis page in the current nav. The page code exists, unrouted.
+- **Planned to return**: Action Items (time-sensitive TODOs surfaced by urgency). Dropped from the nav during the Jobs-first revamp; the page code is kept on disk to re-add.
 
-## Later (not v1)
+## Later (not now)
 
-- Google Drive sync as an optional connected storage layer (real OAuth)
-- BYO-key option if shared-key usage grows past what's comfortable to subsidize
-- Multi-user / shareable boards (e.g., a mentor reviewing your pipeline)
-- Browser extension for one-click capture from LinkedIn/job boards
-- Notifications/reminders for overdue action items
+- Re-surface Action Items (and optionally a Dashboard/Analysis view) once the Jobs-first layout settles.
+- Google Drive sync as an optional connected storage layer (real OAuth).
+- BYO-key option if shared-key usage grows past what's comfortable to subsidize.
+- Multi-user / shareable boards (e.g., a mentor reviewing your pipeline).
+- Browser extension for one-click capture from LinkedIn/job boards.
+- Notifications/reminders for overdue action items.
 
 ## Open questions
 
-- Final product name and domain
-- Exact daily rate-limit number (start conservative, watch real usage, adjust)
-- How much should the public version know it was inspired by your own search, vs. presenting as a generic tool for anyone?
+- Exact daily rate-limit numbers (start conservative, watch real usage, adjust).
+- How much should the public version know it was inspired by a personal search, vs. presenting as a generic tool for anyone?
+- Whether Analysis returns as its own surface or stays folded into fit history.

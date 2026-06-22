@@ -219,6 +219,9 @@ function AppCard({ app, onEdit, onMove }) {
             ☺ {contacts.map(c => c.name).join(', ')}
           </p>
         )}
+        {app.stage === 'Closed' && app.closeReason && (
+          <p className={styles.cardCloseReason}>✕ {app.closeReason}</p>
+        )}
       </button>
       <div className={styles.cardFooter}>
         <select
@@ -284,6 +287,11 @@ function ListView({ onEdit }) {
               <td>{orgName(app.orgId)}</td>
               <td>
                 <Badge tone={STAGE_TONE[app.stage]}>{app.stage}</Badge>
+                {app.stage === 'Closed' && app.closeReason && (
+                  <div className={styles.closeReason} title={app.closeReason}>
+                    {app.closeReason}
+                  </div>
+                )}
               </td>
               <td>{app.fitVerdict ? <FitBadges fit={app.fitVerdict} /> : null}</td>
               <td>{app.location}</td>

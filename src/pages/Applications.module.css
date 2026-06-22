@@ -132,6 +132,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Free-form reason on a Closed card. */
+.cardCloseReason {
+  margin: var(--space-2) 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
 
 .cardFooter {
   display: flex;
@@ -199,6 +205,14 @@
 }
 .roleCell {
   font-weight: 600;
+}
+/* Free-form reason shown under the "Closed" stage pill. */
+.closeReason {
+  margin-top: 4px;
+  max-width: 220px;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: normal;
 }
 .actionsCol {
   text-align: right;

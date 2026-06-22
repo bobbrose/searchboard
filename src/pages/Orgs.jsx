@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import OrgForm from '../forms/OrgForm.jsx';
+import ApplicationForm from '../forms/ApplicationForm.jsx';
 import { useDb, useSelectors } from '../lib/db.jsx';
 import styles from './Orgs.module.css';
 
 export default function Orgs() {
   const { db } = useDb();
   const [editing, setEditing] = useState(null); // org record, {} for new, or null
+  const [editingApp, setEditingApp] = useState(null); // app to open in the editor
 
   const orgs = [...db.orgs].sort((a, b) =>
     (a.name || '').localeCompare(b.name || '')
@@ -43,7 +45,12 @@ export default function Orgs() {
       ) : (
         <div className={styles.grid}>
           {orgs.map(org => (
-            <OrgCard key={org.id} org={org} onEdit={() => setEditing(org)} />
+            <OrgCard
+              key={org.id}
+              org={org}
+              onEdit={() => setEditing(org)}
+              onOpenJob={setEditingApp}
+            />
           ))}
         </div>
       )}
@@ -51,11 +58,15 @@ export default function Orgs() {
       {editing && (
         <OrgForm org={editing.id ? editing : null} onClose={() => setEditing(null)} />
       )}
+
+      {editingApp && (
+        <ApplicationForm app={editingApp} onClose={() => setEditingApp(null)} />
+      )}
     </>
   );
 }
 
-function OrgCard({ org, onEdit }) {
+function OrgCard({ org, onEdit, onOpenJob }) {
   const { remove } = useDb();
   const { appsForOrg, contactsForOrg } = useSelectors();
   const navigate = useNavigate();
@@ -79,17 +90,28 @@ function OrgCard({ org, onEdit }) {
         {org.notes && <p className={styles.notes}>{org.notes}</p>}
       </button>
 
+      {apps.length > 0 && (
+        <ul className={styles.jobList}>
+          {apps.map(app => (
+            <li key={app.id}>
+              <button
+                type="button"
+                className={styles.jobLink}
+                onClick={() => onOpenJob(app)}
+                title="Open this job"
+              >
+                <span className={styles.jobTitle}>
+                  {app.title || 'Untitled job'}
+                </span>
+                {app.stage && <span className={styles.jobStage}>{app.stage}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
       <div className={styles.footer}>
         <div className={styles.links}>
-          {apps.length > 0 && (
-            <button
-              className={styles.chip}
-              onClick={() => navigate('/')}
-              title="View jobs"
-            >
-              ▤ {apps.length} job{apps.length === 1 ? '' : 's'}
-            </button>
-          )}
           {contacts.length > 0 && (
             <button
               className={styles.chip}

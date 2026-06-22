@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import Badge from '../components/Badge.jsx';
@@ -6,6 +7,7 @@ import { FitBadges } from '../components/FitVerdict.jsx';
 import ApplicationForm from '../forms/ApplicationForm.jsx';
 import { useDb, useSelectors } from '../lib/db.jsx';
 import { STAGES, exportAsFile, importFromFile, mergeDB } from '../lib/store.js';
+import { hasCriteria } from '../lib/fit.js';
 import { buildShareUrl } from '../lib/share.js';
 import { formatDate, today } from '../lib/dates.js';
 import styles from './Applications.module.css';
@@ -85,17 +87,17 @@ export default function Applications() {
             type="button"
             className="btn btn--ghost btn--sm"
             onClick={() => exportAsFile(db)}
-            title="Download all data as a JSON file"
+            title="Save the current state of all your jobs and data to a JSON file — your backup for restoring later or moving to another browser."
           >
-            ↓ Export
+            ↓ Save to file
           </button>
           <button
             type="button"
             className="btn btn--ghost btn--sm"
             onClick={() => fileRef.current?.click()}
-            title="Merge data from a JSON file (newer records win; nothing erased)"
+            title="Load jobs from a saved JSON file and merge them in — newer records win and nothing you already have is erased."
           >
-            ↑ Import
+            ↑ Load from file
           </button>
           <input
             ref={fileRef}
@@ -129,16 +131,37 @@ export default function Applications() {
       </PageHeader>
 
       {!hasApps ? (
-        <EmptyState
-          icon="▤"
-          title="No jobs yet"
-          hint="Add a job manually, or paste a job description and let it fill the fields in."
-          action={
-            <button className="btn btn--primary" onClick={() => setEditing({})}>
-              + Add your first job
-            </button>
-          }
-        />
+        <>
+          {!hasCriteria(db.profile) && (
+            <Link to="/criteria" className={styles.criteriaCta}>
+              <span>
+                <strong>Set up your criteria</strong> so we can find jobs with the
+                best fit.
+              </span>
+              <span className={styles.criteriaCtaArrow} aria-hidden="true">
+                →
+              </span>
+            </Link>
+          )}
+          <EmptyState
+            icon="▤"
+            title="No jobs yet"
+            hint="Add a job manually, or paste a job description and let it fill the fields in."
+            action={
+              <>
+                <button className="btn btn--primary" onClick={() => setEditing({})}>
+                  + Add your first job
+                </button>
+                <button
+                  className="btn btn--ghost"
+                  onClick={() => fileRef.current?.click()}
+                >
+                  Load jobs from saved file
+                </button>
+              </>
+            }
+          />
+        </>
       ) : view === 'kanban' ? (
         <KanbanView onEdit={setEditing} />
       ) : (
@@ -158,15 +181,59 @@ export default function Applications() {
 // --- Kanban ----------------------------------------------------------------
 function KanbanView({ onEdit }) {
   const { db, update } = useDb();
+  // Closed jobs don't need pipeline prominence: pin the column to the far left
+  // and collapse it by default so it sits out of the way until you want it.
+  const [closedCollapsed, setClosedCollapsed] = useState(true);
+  const order = ['Closed', ...STAGES.filter(s => s !== 'Closed')];
 
   return (
     <div className={styles.board}>
-      {STAGES.map(stage => {
+      {order.map(stage => {
         const apps = db.apps.filter(a => a.stage === stage);
+        const isClosed = stage === 'Closed';
+
+        if (isClosed && closedCollapsed) {
+          return (
+            <section
+              key={stage}
+              className={`${styles.column} ${styles.columnCollapsed}`}
+            >
+              <button
+                type="button"
+                className={styles.collapsedBar}
+                onClick={() => setClosedCollapsed(false)}
+                aria-label={`Expand Closed (${apps.length} closed job${apps.length === 1 ? '' : 's'})`}
+                aria-expanded="false"
+              >
+                <span className={styles.chevron} aria-hidden="true">▸</span>
+                <span
+                  className={styles.colCount}
+                  title={`${apps.length} closed job${apps.length === 1 ? '' : 's'}`}
+                >
+                  {apps.length}
+                </span>
+              </button>
+            </section>
+          );
+        }
+
         return (
           <section key={stage} className={styles.column}>
             <header className={styles.colHeader}>
-              <span>{stage}</span>
+              <span className={styles.colHeadLeft}>
+                {isClosed && (
+                  <button
+                    type="button"
+                    className={styles.collapseBtn}
+                    onClick={() => setClosedCollapsed(true)}
+                    title="Collapse Closed"
+                    aria-expanded="true"
+                  >
+                    ▾
+                  </button>
+                )}
+                {stage}
+              </span>
               <span className={styles.colCount}>{apps.length}</span>
             </header>
             <div className={styles.colBody}>

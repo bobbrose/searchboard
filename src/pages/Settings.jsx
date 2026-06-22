@@ -5,6 +5,7 @@ import { useDb } from '../lib/db.jsx';
 import {
   exportAsFile,
   importFromFile,
+  mergeDB,
   emptyDB,
   canUseParseToday
 } from '../lib/store.js';
@@ -40,34 +41,56 @@ export default function Settings() {
     ['Action items', db.todos.length]
   ];
 
+  // Merge-load: newer records win, nothing is erased — same behavior as the
+  // Jobs page. Wiping is only ever done explicitly via "Clear all data".
+  const COLLECTIONS = ['apps', 'orgs', 'contacts', 'analyses', 'todos'];
   async function onImport(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const next = await importFromFile(file);
-      const total =
-        next.apps.length + next.orgs.length + next.contacts.length +
-        next.analyses.length + next.todos.length;
+      const incoming = await importFromFile(file);
+      const merged = mergeDB(db, incoming);
+      const added = COLLECTIONS.reduce(
+        (n, k) => n + (merged[k].length - db[k].length),
+        0
+      );
+      const incomingTotal = COLLECTIONS.reduce(
+        (n, k) => n + (incoming[k]?.length || 0),
+        0
+      );
+      const updated = incomingTotal - added; // matched existing ids (newest wins)
+      const changed = COLLECTIONS.some(
+        k =>
+          merged[k].length !== db[k].length ||
+          merged[k].some((rec, i) => rec !== db[k][i])
+      );
+      if (!changed) {
+        setMsg({ tone: 'ok', text: "Already up to date — nothing to merge." });
+        return;
+      }
       if (
         !confirm(
-          `Import will replace your current data (${db.apps.length} apps, ${db.contacts.length} contacts, …) with the file's contents (${total} records total). Continue?`
+          `Merge ${incomingTotal} record(s) from this file into your data?\n\n` +
+            `• ${added} new record(s) added\n` +
+            `• ${updated} matched existing record(s) (newer version kept)\n\n` +
+            `Your current data is not erased.`
         )
       ) {
         return;
       }
-      replaceAll(next);
-      setMsg({ tone: 'ok', text: 'Data imported successfully.' });
+      replaceAll(merged);
+      setMsg({ tone: 'ok', text: 'Data loaded and merged successfully.' });
     } catch (err) {
-      setMsg({ tone: 'danger', text: err.message || 'Import failed.' });
+      setMsg({ tone: 'danger', text: err.message || 'Load failed.' });
     } finally {
-      e.target.value = ''; // allow re-importing the same file
+      e.target.value = ''; // allow re-loading the same file
     }
   }
 
   function onClear() {
     if (
       !confirm(
-        'Clear ALL data from this browser? Export first if you want a backup — this cannot be undone.'
+        'Clear ALL data from this browser? Save to a file first if you want a backup — this cannot be undone.'
       )
     ) {
       return;
@@ -92,9 +115,9 @@ export default function Settings() {
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>Your data</h2>
         <p className={styles.lead}>
-          Everything lives in this browser and in the JSON file you export. No
-          account, no server-side storage. Export to back up or move to another
-          device; import to resume.
+          Everything lives in this browser and in the JSON file you save. No
+          account, no server-side storage. Save to a file to back up or move to
+          another device; load it to resume.
         </p>
 
         <div className={styles.statRow}>
@@ -110,11 +133,19 @@ export default function Settings() {
         )}
 
         <div className={styles.actions}>
-          <button className="btn btn--primary" onClick={() => exportAsFile(db)}>
-            ↓ Export JSON
+          <button
+            className="btn btn--primary"
+            onClick={() => exportAsFile(db)}
+            title="Save the current state of all your data to a JSON file for backup or restoring later."
+          >
+            ↓ Save to file
           </button>
-          <button className="btn" onClick={() => fileRef.current?.click()}>
-            ↑ Import JSON
+          <button
+            className="btn"
+            onClick={() => fileRef.current?.click()}
+            title="Load jobs from a saved JSON file and merge them in — newer records win and nothing you already have is erased. To wipe everything, use Clear all data."
+          >
+            ↑ Load from file
           </button>
           <input
             ref={fileRef}

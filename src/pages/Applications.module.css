@@ -30,24 +30,76 @@
   color: var(--accent-text);
 }
 
+/* First-run nudge to set up fit criteria (shown above the empty state) */
+.criteriaCta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  color: var(--accent-text);
+  font-size: 14px;
+  text-decoration: none;
+}
+.criteriaCta:hover {
+  filter: brightness(0.98);
+}
+.criteriaCtaArrow {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
 /* Kanban board */
 .board {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(240px, 1fr);
+  display: flex;
   gap: var(--space-3);
   overflow-x: auto;
   padding-bottom: var(--space-3);
-  align-items: start;
+  align-items: flex-start;
 }
 
 .column {
+  flex: 1 1 240px;
+  min-width: 240px;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   display: flex;
   flex-direction: column;
   min-height: 120px;
+}
+
+/* Collapsed Closed column — a slim vertical strip on the far left. */
+.columnCollapsed {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+.collapsedBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  height: 100%;
+  min-height: 120px;
+  padding: var(--space-3) 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-weight: 650;
+  font-size: 14px;
+}
+.collapsedBar:hover {
+  color: var(--text);
+}
+.chevron {
+  font-size: 20px;
+  line-height: 1;
 }
 
 .colHeader {
@@ -58,6 +110,28 @@
   font-weight: 650;
   font-size: 14px;
   border-bottom: 1px solid var(--border);
+}
+.colHeadLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.collapseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1;
+  font-size: 18px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.collapseBtn:hover {
+  color: var(--text);
 }
 .colCount {
   font-size: 12px;

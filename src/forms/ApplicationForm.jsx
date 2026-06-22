@@ -67,6 +67,24 @@ export default function ApplicationForm({ app, onClose }) {
 
   const set = (key, value) => setForm(f => ({ ...f, [key]: value }));
 
+  // A score just finished. Reflect it in the panel, and for an ALREADY-SAVED
+  // job persist the verdict immediately so closing the dialog (X, backdrop,
+  // Cancel) can't discard a score that may have cost an AI call. A brand-new,
+  // uncommitted job keeps draft semantics — its score commits with "Add job".
+  // `scoredThisSession` still drives the submit-time Analysis timeline entry, so
+  // history is logged once on save, not on every re-score.
+  function finishScore(scored) {
+    setFit(scored);
+    setScoredThisSession(true);
+    setFitStatus('done');
+    if (app?.id) {
+      upsert('apps', {
+        id: app.id,
+        fitVerdict: { ...scored, scoredAt: new Date().toISOString() }
+      });
+    }
+  }
+
   // Score a JD against the user's criteria. Hard filters are checked in the
   // browser first — a trip yields an instant verdict with no API call.
   async function runScoring({ jdText, salary, location }) {
@@ -82,9 +100,7 @@ export default function ApplicationForm({ app, onClose }) {
 
     const hard = checkHardFilters(db.profile, { salary, jdText, location });
     if (hard) {
-      setFit(hard);
-      setScoredThisSession(true);
-      setFitStatus('done');
+      finishScore(hard);
       return;
     }
 
@@ -107,9 +123,7 @@ export default function ApplicationForm({ app, onClose }) {
         return;
       }
       recordUse('score');
-      setFit(data);
-      setScoredThisSession(true);
-      setFitStatus('done');
+      finishScore(data);
     } catch {
       setFitStatus('error');
       setFitError('Network error while scoring.');

@@ -68,7 +68,10 @@ export function exportAsFile(db) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `searchboard-export-${new Date().toISOString().slice(0, 10)}.json`;
+  // Date + HHmm (UTC) so multiple exports in a day don't collide. Colons are
+  // stripped because some filesystems reject them. e.g. searchboard-export-2026-06-21-1904.json
+  const stamp = new Date().toISOString().slice(0, 16).replace('T', '-').replace(':', '');
+  a.download = `searchboard-export-${stamp}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }

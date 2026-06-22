@@ -20,15 +20,16 @@ const DbContext = createContext(null);
 export const COLLECTIONS = ['apps', 'orgs', 'contacts', 'analyses', 'todos'];
 
 export function DbProvider({ children }) {
-  const [db, setDb] = useState(emptyDB);
+  // Hydrate synchronously in the initializer (this is a client-only SPA, no
+  // SSR, so reading localStorage during init is safe). Doing this here rather
+  // than in a mount effect is essential: it closes the race where the mirror
+  // effect below would write the empty initial state over real data before a
+  // hydrate effect could load it — a clobber StrictMode's double-invoke made
+  // happen on every reload.
+  const [db, setDb] = useState(loadFromLocalStorage);
 
-  // Hydrate from localStorage once on mount (SSR-safe-ish: only touches
-  // localStorage in the effect, never during render).
-  useEffect(() => {
-    setDb(loadFromLocalStorage());
-  }, []);
-
-  // Mirror every change back to localStorage.
+  // Mirror every change back to localStorage. On first run this writes the
+  // already-hydrated data back unchanged, so there's no window for data loss.
   useEffect(() => {
     saveToLocalStorage(db);
   }, [db]);

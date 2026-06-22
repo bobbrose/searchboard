@@ -1,7 +1,7 @@
 import TagInput from '../components/TagInput.jsx';
 import ResumeSeed from './ResumeSeed.jsx';
 import { useDb } from '../lib/db.jsx';
-import { IC_CODING_OPTIONS, COMPANY_DIMENSIONS, PRODUCT_INFRA_OPTIONS } from '../lib/fit.js';
+import { COMPANY_DIMENSIONS, PRODUCT_INFRA_OPTIONS } from '../lib/fit.js';
 import styles from './SearchCriteria.module.css';
 
 // The living criteria profile — source of truth, edited any time in Settings.
@@ -53,7 +53,7 @@ export default function SearchCriteria({ embedded = false }) {
         <TagInput
           value={p.targetTitles || []}
           onChange={v => setProfile({ targetTitles: v })}
-          placeholder="Senior Engineering Manager, Director of Engineering…"
+          placeholder="e.g. Director of Product, Senior Designer, VP of Marketing…"
         />
       </Group>
 
@@ -75,17 +75,15 @@ export default function SearchCriteria({ embedded = false }) {
             step="1000"
           />
         </Group>
-        <Group label="Hands-on IC coding" hint="How much individual coding you want.">
-          <select
-            value={hard.icCoding || ''}
-            onChange={e => setHard({ icCoding: e.target.value })}
-          >
-            {IC_CODING_OPTIONS.map(o => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+        <Group label="Remote required">
+          <label className={styles.check}>
+            <input
+              type="checkbox"
+              checked={!!hard.remoteRequired}
+              onChange={e => setHard({ remoteRequired: e.target.checked })}
+            />
+            <span>Only consider remote roles</span>
+          </label>
         </Group>
       </div>
 
@@ -94,26 +92,6 @@ export default function SearchCriteria({ embedded = false }) {
           value={hard.domainExclusions || []}
           onChange={v => setHard({ domainExclusions: v })}
           placeholder="martech, crypto, notifications…"
-        />
-      </Group>
-
-      <label className={styles.check}>
-        <input
-          type="checkbox"
-          checked={!!hard.remoteRequired}
-          onChange={e => setHard({ remoteRequired: e.target.checked })}
-        />
-        <span>Remote required</span>
-      </label>
-
-      <Group
-        label="Relocation / in-person exceptions"
-        hint="Cities where on-site is acceptable anyway."
-      >
-        <TagInput
-          value={hard.relocationExceptions || []}
-          onChange={v => setHard({ relocationExceptions: v })}
-          placeholder="Seattle, New York…"
         />
       </Group>
 
@@ -126,11 +104,11 @@ export default function SearchCriteria({ embedded = false }) {
           rows={2}
           value={hard.notes || ''}
           onChange={e => setHard({ notes: e.target.value })}
-          placeholder="e.g. Seattle ok only for exceptional opportunities."
+          placeholder="e.g. Comp floor is flexible if equity is strong; open to hybrid for an exceptional team."
         />
       </Group>
 
-      <h3 className={styles.subhead}>Soft preferences</h3>
+      <h3 className={styles.subhead}>Preferences</h3>
       <p className={styles.subhint}>
         Judgment calls the AI weighs when scoring — not pattern-matched by code.
       </p>
@@ -218,7 +196,7 @@ export default function SearchCriteria({ embedded = false }) {
           onChange={e =>
             setProfile({ differentiators: splitLines(e.target.value) })
           }
-          placeholder={'Scaled a team from 5 to 30\nShipped X to N million users'}
+          placeholder={'e.g. Grew revenue 40% in two years\nBuilt and led a 20-person team'}
         />
       </Group>
 
@@ -233,7 +211,7 @@ export default function SearchCriteria({ embedded = false }) {
           onChange={e =>
             setProfile({ redFlagPatterns: splitLines(e.target.value) })
           }
-          placeholder={'Hidden IC coding expectations in EM/Director titles'}
+          placeholder={'e.g. Vague scope or shifting priorities\nTitle inflation without real authority'}
         />
       </Group>
     </>
@@ -248,7 +226,7 @@ export default function SearchCriteria({ embedded = false }) {
         What you want next. Each job you add is scored on how closely it{' '}
         <em>fits these criteria</em> — not a judgment of you or the job, just
         the overlap, and why. Hard filters are checked in your browser (no AI
-        call); soft preferences guide the AI's read. Sent only transiently when
+        call); preferences guide the AI's read. Sent only transiently when
         scoring, never stored. Round-trips through Export / Import.
       </p>
       {body}

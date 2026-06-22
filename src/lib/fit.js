@@ -144,7 +144,7 @@ export function summarizeFit(fit) {
   const actionLabel = ACTION_LEVELS[fit.action]?.label || fit.action;
   const lines = [`${fitLabel} → ${actionLabel}`];
   const add = (label, v) => v && lines.push(`${label}: ${v}`);
-  add('People leadership', r.peopleLeadership);
+  add('Role & level', r.roleFit || r.peopleLeadership);
   add('Domain fit', r.domainFit);
   add('Comp', r.comp);
   add('Stack alignment', r.stackAlignment);
@@ -158,7 +158,7 @@ function pass(comp) {
     fit: 'miss',
     action: 'pass',
     reasoning: {
-      peopleLeadership: '',
+      roleFit: '',
       domainFit: '',
       comp,
       stackAlignment: '',

@@ -6,12 +6,14 @@ import styles from './FitVerdict.module.css';
 // (what to do — driven by fit, but able to override it). Shared by the inline
 // view in ApplicationForm, the Applications list, and the Analysis timeline.
 
+// First key falls back to the old `peopleLeadership` name so verdicts scored
+// before the rename still render their first section.
 const STAGES = [
-  ['peopleLeadership', 'People leadership'],
-  ['domainFit', 'Domain fit'],
-  ['comp', 'Comp'],
-  ['stackAlignment', 'Stack alignment'],
-  ['redFlags', 'Red flags']
+  [['roleFit', 'peopleLeadership'], 'Role & level'],
+  [['domainFit'], 'Domain fit'],
+  [['comp'], 'Comp'],
+  [['stackAlignment'], 'Stack alignment'],
+  [['redFlags'], 'Red flags']
 ];
 
 // Just the two badges — reusable wherever a compact verdict chip is wanted.
@@ -39,14 +41,15 @@ export default function FitVerdict({ fit, compact = false }) {
       </div>
 
       <dl className={styles.stages}>
-        {STAGES.map(([key, label]) =>
-          reasoning[key] ? (
-            <div key={key} className={styles.stage}>
+        {STAGES.map(([keys, label]) => {
+          const text = keys.map(k => reasoning[k]).find(Boolean);
+          return text ? (
+            <div key={label} className={styles.stage}>
               <dt className={styles.stageLabel}>{label}</dt>
-              <dd className={styles.stageText}>{reasoning[key]}</dd>
+              <dd className={styles.stageText}>{text}</dd>
             </div>
-          ) : null
-        )}
+          ) : null;
+        })}
       </dl>
 
       {!compact && fit.coverLetterHook && (

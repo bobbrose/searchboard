@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useDb } from '../lib/db.jsx';
 import { canUseToday, recordUse } from '../lib/store.js';
+import { hasCriteria } from '../lib/fit.js';
 import { formatDate } from '../lib/dates.js';
 import styles from './SearchCriteria.module.css';
 
@@ -21,6 +22,15 @@ export default function ResumeSeed() {
 
   async function seed() {
     if (!text.trim()) return;
+    // Seeding replaces existing criteria — confirm before discarding them.
+    if (
+      hasCriteria(db.profile) &&
+      !confirm(
+        'Seeding from a résumé replaces your current Fit Criteria (comp floor, deal-breakers, preferences, and all) with what we parse from this résumé. Continue?'
+      )
+    ) {
+      return;
+    }
     setStatus('loading');
     setError('');
     try {
@@ -36,7 +46,7 @@ export default function ResumeSeed() {
         return;
       }
       recordUse('resume');
-      applyResume(data, db.profile, setProfile);
+      applyResume(data, setProfile);
       setStatus('done');
       setOpen(false);
       setText('');
@@ -108,29 +118,17 @@ export default function ResumeSeed() {
   );
 }
 
-// Merge the extracted seed into the profile: union the list fields (never
-// clobber what the user already has), fill home location only if empty, and
-// append the background summary to the soft-preferences notes.
-function applyResume(data, profile, setProfile) {
-  const p = profile || {};
-  const union = (a = [], b = []) => [...new Set([...a, ...b.filter(Boolean)])];
-  const patch = {};
-
-  if (data.targetTitles?.length)
-    patch.targetTitles = union(p.targetTitles, data.targetTitles);
-  if (data.differentiators?.length)
-    patch.differentiators = union(p.differentiators, data.differentiators);
-  if (data.homeState && !p.homeState) patch.homeState = data.homeState;
-  if (data.background) {
-    const soft = p.softPreferences || {};
-    patch.softPreferences = {
-      ...soft,
-      notes: soft.notes ? `${soft.notes}\n${data.background}` : data.background
-    };
-  }
-
-  if (Object.keys(patch).length) {
-    patch.resumeSeededAt = new Date().toISOString();
-    setProfile(patch);
-  }
+// Seeding is a fresh start: REPLACE all criteria with what the résumé yields,
+// clearing anything previously set (comp floor, deal-breakers, preferences…).
+// Empty objects for hardFilters/softPreferences wipe their nested fields.
+function applyResume(data, setProfile) {
+  setProfile({
+    targetTitles: data.targetTitles || [],
+    differentiators: data.differentiators || [],
+    redFlagPatterns: [],
+    homeState: data.homeState || '',
+    hardFilters: {},
+    softPreferences: { notes: data.background || '' },
+    resumeSeededAt: new Date().toISOString()
+  });
 }

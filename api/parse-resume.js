@@ -23,7 +23,7 @@ Rules:
 - "targetTitles": 1-3 role titles this person is plausibly targeting next, based on their most recent/senior roles. Use the role's level or the natural next step (e.g. a Senior Engineering Manager might target "Senior Engineering Manager" and "Director of Engineering"). Do NOT invent domains they have no background in.
 - "differentiators": 3-6 short, concrete bullets capturing their strongest selling points — scope, scale, outcomes, notable skills. Each a brief phrase, not a full sentence. These double as cover-letter hook material, so keep them sharp and specific (numbers where the résumé gives them).
 - "homeState": their location if stated (a US state abbreviation, or city/region as written). Empty string if not present.
-- "background": 2-3 plain sentences summarizing their domains, tech stack, and seniority — context for later scoring.
+- "background": 2-4 plain sentences giving the scorer concrete anchors to judge fit against. Explicitly state: (a) their primary FUNCTION/track and whether they are an individual-contributor / tech-lead or a people-manager (and roughly how many years in each); (b) the industries/domains they've actually worked in; (c) their level/seniority; (d) core skills and tech stack. Be precise about IC-vs-management — "led a team" as a tech lead is not the same as people-management; say which it is.
 - Extract only what the résumé supports. Use empty string / empty array where the résumé is silent. Never fabricate compensation, preferences, or deal-breakers — those aren't on a résumé.`;
 
 export default async function handler(req, res) {

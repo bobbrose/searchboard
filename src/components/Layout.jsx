@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useDb, useSelectors } from '../lib/db.jsx';
 import { isOverdue } from '../lib/dates.js';
+import { exportAsFile, importFromFile } from '../lib/store.js';
 import styles from './Layout.module.css';
 
 const NAV = [
@@ -15,9 +16,32 @@ const NAV = [
 ];
 
 export default function Layout() {
-  const { db } = useDb();
+  const { db, replaceAll } = useDb();
   const { openTodos } = useSelectors();
   const [navOpen, setNavOpen] = useState(false);
+  const fileRef = useRef(null);
+
+  async function onImport(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const next = await importFromFile(file);
+      const total =
+        next.apps.length + next.orgs.length + next.contacts.length +
+        next.analyses.length + next.todos.length;
+      if (
+        confirm(
+          `Import will replace your current data (${db.apps.length} apps, ${db.contacts.length} contacts, …) with the file's contents (${total} records total). Continue?`
+        )
+      ) {
+        replaceAll(next);
+      }
+    } catch (err) {
+      alert(err.message || 'Import failed.');
+    } finally {
+      e.target.value = ''; // allow re-importing the same file
+    }
+  }
 
   // Badge counts shown next to nav items.
   const overdueCount = openTodos().filter(t => isOverdue(t.dueDate)).length;
@@ -70,6 +94,33 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
+
+        <div className={styles.dataActions}>
+          <button
+            type="button"
+            className={styles.dataBtn}
+            onClick={() => exportAsFile(db)}
+            title="Download all data as a JSON file"
+          >
+            <span aria-hidden="true">↓</span> Export
+          </button>
+          <button
+            type="button"
+            className={styles.dataBtn}
+            onClick={() => fileRef.current?.click()}
+            title="Replace all data from a JSON file"
+          >
+            <span aria-hidden="true">↑</span> Import
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            onChange={onImport}
+            className={styles.hiddenInput}
+          />
+        </div>
+
         <div className={styles.footnote}>Local-first · your data stays here</div>
       </aside>
 

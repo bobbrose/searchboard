@@ -33,7 +33,7 @@ export default function Orgs() {
         <EmptyState
           icon="◳"
           title="No organizations yet"
-          hint="Add the companies you're researching. Applications and contacts link back to them."
+          hint="Add the companies you're researching. Jobs and contacts link back to them."
           action={
             <button className="btn btn--primary" onClick={() => setEditing({})}>
               + Add your first org
@@ -84,10 +84,10 @@ function OrgCard({ org, onEdit }) {
           {apps.length > 0 && (
             <button
               className={styles.chip}
-              onClick={() => navigate('/applications')}
-              title="View applications"
+              onClick={() => navigate('/')}
+              title="View jobs"
             >
-              ▤ {apps.length} app{apps.length === 1 ? '' : 's'}
+              ▤ {apps.length} job{apps.length === 1 ? '' : 's'}
             </button>
           )}
           {contacts.length > 0 && (
@@ -117,7 +117,7 @@ function OrgCard({ org, onEdit }) {
           onClick={() => {
             if (
               confirm(
-                `Delete "${org.name || 'this org'}"? Linked applications and contacts will keep their other data but lose this org link.`
+                `Delete "${org.name || 'this org'}"? Linked jobs and contacts will keep their other data but lose this org link.`
               )
             ) {
               remove('orgs', org.id);

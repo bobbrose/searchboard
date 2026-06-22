@@ -9,7 +9,6 @@ import {
   canUseParseToday
 } from '../lib/store.js';
 import { formatDate } from '../lib/dates.js';
-import SearchCriteria from '../forms/SearchCriteria.jsx';
 import styles from './Settings.module.css';
 
 // Mirrors the (unexported) storage key in store.js so we can *display* today's
@@ -34,7 +33,7 @@ export default function Settings() {
   const [msg, setMsg] = useState(null); // { tone, text }
 
   const counts = [
-    ['Applications', db.apps.length],
+    ['Jobs', db.apps.length],
     ['Orgs', db.orgs.length],
     ['Contacts', db.contacts.length],
     ['Analysis entries', db.analyses.length],
@@ -130,8 +129,6 @@ export default function Settings() {
         </div>
       </section>
 
-      <SearchCriteria />
-
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>Shared AI parsing</h2>
         <p className={styles.lead}>
@@ -149,7 +146,7 @@ export default function Settings() {
         </div>
         {!available && (
           <p className={styles.note}>
-            Your allowance resets tomorrow. You can still add roles manually any time.
+            Your allowance resets tomorrow. You can still add jobs manually any time.
           </p>
         )}
       </section>

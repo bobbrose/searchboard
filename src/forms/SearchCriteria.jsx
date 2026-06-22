@@ -60,7 +60,7 @@ export default function SearchCriteria({ embedded = false }) {
       <h3 className={styles.subhead}>Hard filters</h3>
       <p className={styles.subhint}>
         Deal-breakers. Checked instantly in your browser before any AI call — a
-        role that trips one is marked “Pass” for free, no tokens spent.
+        job that trips one is marked “Pass” for free, no tokens spent.
       </p>
 
       <div className={styles.row}>
@@ -89,7 +89,7 @@ export default function SearchCriteria({ embedded = false }) {
         </Group>
       </div>
 
-      <Group label="Excluded domains" hint="Keywords that disqualify a role.">
+      <Group label="Excluded domains" hint="Keywords that disqualify a job.">
         <TagInput
           value={hard.domainExclusions || []}
           onChange={v => setHard({ domainExclusions: v })}
@@ -245,8 +245,8 @@ export default function SearchCriteria({ embedded = false }) {
     <section className={styles.card}>
       <h2 className={styles.cardTitle}>Fit Criteria</h2>
       <p className={styles.lead}>
-        What you want next. Each role you add is scored on how closely it{' '}
-        <em>fits these criteria</em> — not a judgment of you or the role, just
+        What you want next. Each job you add is scored on how closely it{' '}
+        <em>fits these criteria</em> — not a judgment of you or the job, just
         the overlap, and why. Hard filters are checked in your browser (no AI
         call); soft preferences guide the AI's read. Sent only transiently when
         scoring, never stored. Round-trips through Export / Import.

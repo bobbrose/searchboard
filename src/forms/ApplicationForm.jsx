@@ -7,10 +7,22 @@ import { STAGES } from '../lib/store.js';
 import { canUseParseToday, recordParseUse, canUseToday, recordUse } from '../lib/store.js';
 import { hasCriteria, checkHardFilters, summarizeFit } from '../lib/fit.js';
 import { buildShareUrl } from '../lib/share.js';
+import { today } from '../lib/dates.js';
 import FitVerdict from '../components/FitVerdict.jsx';
+import InfoDot from '../components/InfoDot.jsx';
 import styles from './ApplicationForm.module.css';
 
 const NEW_ORG = '__new__';
+
+// What each Seniority / scope value (1–5) means — a rough, generic read of the
+// role's level, independent of personal fit. Surfaced via the info tooltip.
+const SENIORITY_SCALE = [
+  ['1', 'Junior — entry-level, narrow scope'],
+  ['2', 'Mid-level — solid individual contributor'],
+  ['3', 'Senior — owns major projects or a small team'],
+  ['4', 'Staff / Manager — multi-team or broad scope'],
+  ['5', 'Principal / Director+ — org-wide leadership']
+];
 
 // Add/edit an application. Hosts the paste-a-JD flow and the Share button.
 // `app` is the record being edited, or null/undefined to create a new one.
@@ -90,7 +102,7 @@ export default function ApplicationForm({ app, onClose }) {
       const data = await res.json();
       if (!res.ok) {
         setFitStatus('error');
-        setFitError(data.error || 'Could not score this role.');
+        setFitError(data.error || 'Could not score this job.');
         return;
       }
       recordUse('score');
@@ -178,7 +190,7 @@ export default function ApplicationForm({ app, onClose }) {
     if (scored) {
       add('analyses', {
         type: 'Fit scoring',
-        title: `Fit: ${form.title || 'role'}`,
+        title: `Fit: ${form.title || 'job'}`,
         appId: saved.id,
         orgId,
         body: summarizeFit(scored),
@@ -193,17 +205,20 @@ export default function ApplicationForm({ app, onClose }) {
     <Modal
       title={
         isEdit
-          ? [form.title || 'Untitled role', orgName(form.orgId)]
+          ? [form.title || 'Untitled job', orgName(form.orgId)]
               .filter(Boolean)
               .join(' · ')
-          : 'New application'
+          : 'New job'
       }
       onClose={onClose}
       wide
       footer={
         <>
           {isEdit && (
-            <ShareButton app={app} orgLabel={orgName(app.orgId)} />
+            <>
+              <ShareButton app={app} orgLabel={orgName(app.orgId)} />
+              <DeleteButton app={app} onClose={onClose} />
+            </>
           )}
           <button type="button" className="btn" onClick={onClose}>
             Close
@@ -219,7 +234,7 @@ export default function ApplicationForm({ app, onClose }) {
               ? 'Scoring…'
               : isEdit
                 ? 'Save changes'
-                : 'Add application'}
+                : 'Add job'}
           </button>
         </>
       }
@@ -249,7 +264,7 @@ export default function ApplicationForm({ app, onClose }) {
 
       <form id="application-form" onSubmit={handleSubmit}>
         <TextField
-          label="Role title"
+          label="Job title"
           value={form.title}
           onChange={e => set('title', e.target.value)}
           placeholder="Senior Product Manager"
@@ -272,7 +287,17 @@ export default function ApplicationForm({ app, onClose }) {
           <SelectField
             label="Stage"
             value={form.stage}
-            onChange={e => set('stage', e.target.value)}
+            onChange={e => {
+              const stage = e.target.value;
+              // Moving to "Applied" stamps today's date (date only), unless one
+              // is already set — shown immediately in the Applied date field.
+              setForm(f => ({
+                ...f,
+                stage,
+                appliedDate:
+                  stage === 'Applied' && !f.appliedDate ? today() : f.appliedDate
+              }));
+            }}
             options={STAGES}
           />
         </FieldRow>
@@ -294,7 +319,21 @@ export default function ApplicationForm({ app, onClose }) {
             placeholder="Remote (US)"
           />
           <SelectField
-            label="Seniority / scope (1–5)"
+            label={
+              <>
+                Seniority / scope (1–5)
+                <InfoDot label="What the 1–5 scores mean">
+                  <strong className={styles.scaleHead}>What the score means</strong>
+                  <ul className={styles.scaleList}>
+                    {SENIORITY_SCALE.map(([n, desc]) => (
+                      <li key={n}>
+                        <b>{n}</b> {desc}
+                      </li>
+                    ))}
+                  </ul>
+                </InfoDot>
+              </>
+            }
             value={String(form.fitScore)}
             onChange={e => set('fitScore', e.target.value)}
             options={['1', '2', '3', '4', '5']}
@@ -329,7 +368,7 @@ export default function ApplicationForm({ app, onClose }) {
           label="Fit notes"
           value={form.fitNotes}
           onChange={e => set('fitNotes', e.target.value)}
-          placeholder="What the role involves, notable requirements, why it fits."
+          placeholder="What the job involves, notable requirements, why it fits."
           rows={4}
         />
 
@@ -421,7 +460,7 @@ function PasteJdPanel({ onParsed, userState }) {
       const data = await res.json();
       if (!res.ok) {
         setStatus('error');
-        setError(data.error || 'Could not parse. Enter the role manually below.');
+        setError(data.error || 'Could not parse. Enter the job manually below.');
         return;
       }
       recordParseUse();
@@ -437,7 +476,7 @@ function PasteJdPanel({ onParsed, userState }) {
       setText('');
     } catch {
       setStatus('error');
-      setError('Network error. Enter the role manually below.');
+      setError('Network error. Enter the job manually below.');
     }
   }
 
@@ -482,7 +521,7 @@ function PasteJdPanel({ onParsed, userState }) {
       {error && <p className={styles.pasteError}>{error}</p>}
       {!canParse && (
         <p className={styles.pasteError}>
-          You've hit today's parsing limit on the shared AI key. Enter the role
+          You've hit today's parsing limit on the shared AI key. Enter the job
           manually below — your daily allowance resets tomorrow.
         </p>
       )}
@@ -520,8 +559,8 @@ function FitPanel({ status, fit, error, hasCriteria, canScore, onScore }) {
   if (!hasCriteria && (status === 'idle' || status === 'nocriteria')) {
     return (
       <div className={styles.fitHint}>
-        Want to see how closely a role fits? Set up your{' '}
-        <Link to="/settings">Fit Criteria</Link> — then score any role here.
+        Want to see how closely a job fits? Set up your{' '}
+        <Link to="/criteria">Fit Criteria</Link> — then score any job here.
       </div>
     );
   }
@@ -530,7 +569,7 @@ function FitPanel({ status, fit, error, hasCriteria, canScore, onScore }) {
     return (
       <div className={styles.fitHint}>
         Daily fit-scoring limit reached on the shared AI key — resets tomorrow.
-        The role's other fields are still filled in.
+        The job's other fields are still filled in.
       </div>
     );
   }
@@ -541,10 +580,10 @@ function FitPanel({ status, fit, error, hasCriteria, canScore, onScore }) {
     return (
       <div className={styles.fitPrompt}>
         <span className={styles.pasteHint}>
-          Score this role against your Fit Criteria.
+          Score this job against your Fit Criteria.
         </span>
         <button type="button" className="btn btn--sm" onClick={onScore}>
-          ✦ Score this role
+          ✦ Score this job
         </button>
       </div>
     );
@@ -565,7 +604,7 @@ function FitPanel({ status, fit, error, hasCriteria, canScore, onScore }) {
       {status === 'done' && fit && (
         <>
           <FitVerdict fit={fit} />
-          <Link to="/settings" className={styles.fitRefine}>
+          <Link to="/criteria" className={styles.fitRefine}>
             Adjust your Fit Criteria →
           </Link>
         </>
@@ -593,11 +632,36 @@ function ShareButton({ app, orgLabel }) {
   return (
     <button
       type="button"
-      className={`btn btn--sm ${styles.shareBtn}`}
+      className="btn btn--sm"
       onClick={share}
-      title="Copy a read-only link to this role"
+      title="Copy a read-only link to this job"
     >
-      {copied ? '✓ Link copied' : '🔗 Share this role'}
+      {copied ? '✓ Link copied' : '🔗 Share this job'}
+    </button>
+  );
+}
+
+// --- Delete button ---------------------------------------------------------
+function DeleteButton({ app, onClose }) {
+  const { remove } = useDb();
+
+  function handleDelete() {
+    if (
+      !confirm(`Delete "${app.title || 'this job'}"? This can't be undone.`)
+    )
+      return;
+    remove('apps', app.id);
+    onClose();
+  }
+
+  return (
+    <button
+      type="button"
+      className={`btn btn--sm btn--danger ${styles.deleteBtn}`}
+      onClick={handleDelete}
+      title="Permanently delete this job"
+    >
+      🗑 Delete job
     </button>
   );
 }

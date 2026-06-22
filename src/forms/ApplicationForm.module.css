@@ -1,3 +1,27 @@
+/* Seniority / scope info tooltip contents */
+.scaleHead {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.6);
+}
+.scaleList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.scaleList b {
+  display: inline-block;
+  width: 12px;
+  color: #fff;
+  font-weight: 700;
+}
+
 /* Paste-a-JD collapsed prompt */
 .pastePrompt {
   display: flex;
@@ -160,7 +184,8 @@
   color: var(--text-muted);
 }
 
-/* Share button sits on the left of the footer */
-.shareBtn {
+/* Share + Delete sit together on the left of the footer; the auto margin
+   after Delete pushes Close/Save to the right. */
+.deleteBtn {
   margin-right: auto;
 }

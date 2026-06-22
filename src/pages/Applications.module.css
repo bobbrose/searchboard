@@ -1,3 +1,12 @@
+/* Export / Import — small buttons to the left of the view toggle */
+.dataBtns {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+.hiddenInput {
+  display: none;
+}
+
 /* View toggle */
 .toggle {
   display: inline-flex;

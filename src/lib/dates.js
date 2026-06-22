@@ -45,6 +45,15 @@ export function dueLabel(value) {
   return `Due in ${n} days`;
 }
 
+// Today as a date-only 'YYYY-MM-DD' string in local time — matches what a
+// native <input type="date"> produces, so the two compare cleanly.
+export function today() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
 // 'Jun 19, 2026' style. Empty string in, empty string out.
 export function formatDate(value) {
   if (!value) return '';

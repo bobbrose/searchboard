@@ -16,14 +16,14 @@ export default function SharedRole() {
         <Link to="/" className={styles.brand}>
           <span className={styles.logo}>◆</span> Searchboard
         </Link>
-        <span className={styles.tag}>Shared role</span>
+        <span className={styles.tag}>Shared job</span>
       </header>
 
       {!role || !role.title ? (
         <div className={styles.card}>
           <h1 className={styles.errorTitle}>This link couldn't be read</h1>
           <p className={styles.errorBody}>
-            The shared role data is missing or malformed. Ask whoever sent it for
+            The shared job data is missing or malformed. Ask whoever sent it for
             a fresh link.
           </p>
           <Link className="btn btn--primary" to="/">
@@ -53,7 +53,7 @@ export default function SharedRole() {
 
           {role.fitNotes && (
             <>
-              <h2 className={styles.sectionLabel}>About the role</h2>
+              <h2 className={styles.sectionLabel}>About the job</h2>
               <p className={styles.notes}>{role.fitNotes}</p>
             </>
           )}

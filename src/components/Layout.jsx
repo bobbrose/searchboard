@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useDb, useSelectors } from '../lib/db.jsx';
 import { isOverdue } from '../lib/dates.js';
-import { exportAsFile, importFromFile } from '../lib/store.js';
+import { exportAsFile, importFromFile, mergeDB } from '../lib/store.js';
 import styles from './Layout.module.css';
 
 const NAV = [
@@ -25,16 +25,38 @@ export default function Layout() {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const next = await importFromFile(file);
-      const total =
-        next.apps.length + next.orgs.length + next.contacts.length +
-        next.analyses.length + next.todos.length;
+      const incoming = await importFromFile(file);
+      const merged = mergeDB(db, incoming);
+      const COLLECTIONS = ['apps', 'orgs', 'contacts', 'analyses', 'todos'];
+      const added = COLLECTIONS.reduce(
+        (n, k) => n + (merged[k].length - db[k].length),
+        0
+      );
+      const incomingTotal = COLLECTIONS.reduce(
+        (n, k) => n + (incoming[k]?.length || 0),
+        0
+      );
+      const updated = incomingTotal - added; // matched existing ids (newest wins)
+      // mergeDB keeps element references (and order) for records it didn't
+      // change, so a real change means a differing length or a swapped item.
+      const changed = COLLECTIONS.some(
+        k =>
+          merged[k].length !== db[k].length ||
+          merged[k].some((rec, i) => rec !== db[k][i])
+      );
+      if (!changed) {
+        alert("You're already up to date with this file. Nothing to merge.");
+        return;
+      }
       if (
         confirm(
-          `Import will replace your current data (${db.apps.length} apps, ${db.contacts.length} contacts, …) with the file's contents (${total} records total). Continue?`
+          `Merge ${incomingTotal} record(s) from this file into your data?\n\n` +
+            `• ${added} new record(s) added\n` +
+            `• ${updated} matched existing record(s) (newer version kept)\n\n` +
+            `Your current data is not erased.`
         )
       ) {
-        replaceAll(next);
+        replaceAll(merged);
       }
     } catch (err) {
       alert(err.message || 'Import failed.');
@@ -108,9 +130,9 @@ export default function Layout() {
             type="button"
             className={styles.dataBtn}
             onClick={() => fileRef.current?.click()}
-            title="Replace all data from a JSON file"
+            title="Merge data from a JSON file (newer records win; nothing erased)"
           >
-            <span aria-hidden="true">↑</span> Import
+            <span aria-hidden="true">↑</span> Merge
           </button>
           <input
             ref={fileRef}

@@ -73,6 +73,44 @@ export function exportAsFile(db) {
   URL.revokeObjectURL(url);
 }
 
+// Collections that hold id-stamped records (array-valued in emptyDB).
+const MERGE_COLLECTIONS = ['apps', 'orgs', 'contacts', 'analyses', 'todos'];
+
+// "Newest wins" tiebreak between two versions of the same record. ISO 8601
+// timestamps sort lexically, so a string compare is enough. A record missing
+// updatedAt is treated as oldest; on a tie the existing record is kept.
+function newer(existing, incoming) {
+  return (incoming.updatedAt || '') > (existing.updatedAt || '') ? incoming : existing;
+}
+
+// Union `incoming` into `current` by record id, per collection. Records whose
+// id appears in only one file are kept; same-id collisions resolve newest-wins.
+// Cross-references survive because ids are preserved. The single-object
+// `profile` (if present) is likewise resolved newest-wins.
+export function mergeDB(current, incoming) {
+  const merged = { ...emptyDB(), ...current };
+
+  for (const key of MERGE_COLLECTIONS) {
+    const byId = new Map((current[key] || []).map(r => [r.id, r]));
+    for (const rec of incoming[key] || []) {
+      if (!rec || !rec.id) continue; // skip malformed rows rather than dropping the import
+      const existing = byId.get(rec.id);
+      byId.set(rec.id, existing ? newer(existing, rec) : rec);
+    }
+    merged[key] = [...byId.values()];
+  }
+
+  if (current.profile || incoming.profile) {
+    merged.profile = !current.profile
+      ? incoming.profile
+      : !incoming.profile
+        ? current.profile
+        : newer(current.profile, incoming.profile);
+  }
+
+  return merged;
+}
+
 export function importFromFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

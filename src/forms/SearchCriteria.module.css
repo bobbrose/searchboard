@@ -69,6 +69,52 @@
   min-width: 160px;
 }
 
+/* Seed-from-résumé */
+.seedPrompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  background: var(--accent-soft);
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius);
+}
+
+.seedHint {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.seedDone {
+  font-size: 13px;
+  color: var(--ok);
+  font-weight: 550;
+}
+
+.seedPanel {
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.seedActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.seedError {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  color: var(--danger);
+}
+
 .dimensions {
   display: flex;
   flex-direction: column;

@@ -152,7 +152,8 @@ export function decodeShareableApp(encoded) {
 // counter, one bucket (localStorage key) per endpoint.
 const DAILY_LIMITS = {
   parse: { key: 'searchboard_parse_count_v1', limit: 15 },
-  score: { key: 'searchboard_score_count_v1', limit: 25 }
+  score: { key: 'searchboard_score_count_v1', limit: 25 },
+  resume: { key: 'searchboard_resume_count_v1', limit: 5 }
 };
 
 function today() {

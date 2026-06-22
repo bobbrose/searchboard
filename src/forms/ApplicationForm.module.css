@@ -95,10 +95,28 @@
   gap: var(--space-2);
 }
 
+.fitPrompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
 .fitWorking {
   margin: 0;
   font-size: 14px;
   color: var(--text-muted);
+}
+
+.fitRefine {
+  align-self: flex-start;
+  font-size: 13px;
 }
 
 .fitHint {

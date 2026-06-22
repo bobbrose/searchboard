@@ -1,4 +1,5 @@
 import TagInput from '../components/TagInput.jsx';
+import ResumeSeed from './ResumeSeed.jsx';
 import { useDb } from '../lib/db.jsx';
 import { IC_CODING_OPTIONS, COMPANY_DIMENSIONS, PRODUCT_INFRA_OPTIONS } from '../lib/fit.js';
 import styles from './SearchCriteria.module.css';
@@ -29,6 +30,8 @@ export default function SearchCriteria({ embedded = false }) {
 
   const body = (
     <>
+      <ResumeSeed />
+
       <Group
         label="Home state / location"
         hint="Tailors salary extraction to your region-specific pay band."

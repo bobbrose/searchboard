@@ -47,7 +47,7 @@ Work through this five-stage framework, letting earlier stages weigh most:
 4. Stack alignment — how well does the tech/scope match their background and preferences?
 5. Red-flag check — scan the JD language for the candidate's stated red-flag patterns and obvious misrepresentations (e.g. an "EM/Director" title with heavy hands-on IC coding expectations).
 
-Each reasoning field is 2-3 sentences, plain and factual, like a trusted recruiter's honest read — reference the candidate's actual criteria, don't just restate the JD. If the profile lacks data for a stage, say what's missing rather than inventing a judgment.
+Each reasoning field is AT MOST 2 sentences — tight, plain, and factual, like a trusted recruiter's honest read. Reference the candidate's actual criteria; don't restate the JD. If the profile lacks data for a stage, say what's missing in a few words rather than inventing a judgment.
 
 coverLetterHook: one or two sentences the candidate could adapt as an opening hook, drawing on their differentiators where they connect to this role. Empty string if action is "pass".`;
 
@@ -133,7 +133,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 900,
+        max_tokens: 700,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userMessage }]
       })

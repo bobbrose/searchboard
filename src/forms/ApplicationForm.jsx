@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Modal from '../components/Modal.jsx';
 import { Field, TextField, TextArea, SelectField, FieldRow } from '../components/Field.jsx';
@@ -8,7 +8,6 @@ import { canUseParseToday, recordParseUse, canUseToday, recordUse } from '../lib
 import { hasCriteria, checkHardFilters, summarizeFit } from '../lib/fit.js';
 import { buildShareUrl } from '../lib/share.js';
 import FitVerdict from '../components/FitVerdict.jsx';
-import RefineCriteria from '../components/RefineCriteria.jsx';
 import styles from './ApplicationForm.module.css';
 
 const NEW_ORG = '__new__';
@@ -20,38 +19,50 @@ export default function ApplicationForm({ app, onClose }) {
   const { orgName } = useSelectors();
   const isEdit = !!app?.id;
 
-  const [form, setForm] = useState(() => ({
-    title: app?.title || '',
-    orgId: app?.orgId || '',
-    stage: app?.stage || STAGES[0],
-    location: app?.location || '',
-    link: app?.link || '',
-    fitNotes: app?.fitNotes || '',
-    fitScore: app?.fitScore ?? '',
-    contactIds: app?.contactIds || [],
-    appliedDate: app?.appliedDate || '',
-    salary: app?.salary || ''
-  }));
+  // Initial snapshot kept for dirty-tracking (so Save stays disabled until
+  // something actually changes).
+  const initialForm = useMemo(
+    () => ({
+      title: app?.title || '',
+      orgId: app?.orgId || '',
+      stage: app?.stage || STAGES[0],
+      location: app?.location || '',
+      link: app?.link || '',
+      fitNotes: app?.fitNotes || '',
+      fitScore: app?.fitScore ?? '',
+      contactIds: app?.contactIds || [],
+      appliedDate: app?.appliedDate || '',
+      salary: app?.salary || ''
+    }),
+    [app]
+  );
+  const [form, setForm] = useState(initialForm);
   const [newOrgName, setNewOrgName] = useState('');
 
-  // Fit scoring (auto-runs after a JD is parsed; persisted as an Analysis
-  // entry on submit). `fitStatus`: idle | scoring | done | error | nocriteria | limit.
-  const [fit, setFit] = useState(null);
-  const [fitStatus, setFitStatus] = useState('idle');
+  // Fit scoring. Auto-runs after a JD is parsed, and can be triggered on demand
+  // for any role. An existing verdict (from a prior session) is loaded so it
+  // shows on open. `fitStatus`: idle | scoring | done | error | nocriteria | limit.
+  const [fit, setFit] = useState(app?.fitVerdict || null);
+  const [fitStatus, setFitStatus] = useState(app?.fitVerdict ? 'done' : 'idle');
   const [fitError, setFitError] = useState('');
-  const [lastJd, setLastJd] = useState(''); // kept so refinement can re-score
+  const [lastJd, setLastJd] = useState(''); // JD parsed this session, for re-scoring
+  // Only a verdict produced this session is re-persisted/logged on save; a
+  // loaded one is left untouched (no duplicate timeline entries on a plain edit).
+  const [scoredThisSession, setScoredThisSession] = useState(false);
+
+  const profileHasCriteria = hasCriteria(db.profile);
 
   const set = (key, value) => setForm(f => ({ ...f, [key]: value }));
 
-  // Score a parsed JD against the user's criteria. Hard filters are checked in
-  // the browser first — a trip yields an instant verdict with no API call.
+  // Score a JD against the user's criteria. Hard filters are checked in the
+  // browser first — a trip yields an instant verdict with no API call.
   async function runScoring({ jdText, salary, location }) {
     if (!jdText) return;
     setLastJd(jdText);
     setFit(null);
     setFitError('');
 
-    if (!hasCriteria(db.profile)) {
+    if (!profileHasCriteria) {
       setFitStatus('nocriteria');
       return;
     }
@@ -59,6 +70,7 @@ export default function ApplicationForm({ app, onClose }) {
     const hard = checkHardFilters(db.profile, { salary, jdText, location });
     if (hard) {
       setFit(hard);
+      setScoredThisSession(true);
       setFitStatus('done');
       return;
     }
@@ -83,12 +95,43 @@ export default function ApplicationForm({ app, onClose }) {
       }
       recordUse('score');
       setFit(data);
+      setScoredThisSession(true);
       setFitStatus('done');
     } catch {
       setFitStatus('error');
       setFitError('Network error while scoring.');
     }
   }
+
+  // Score the role on demand from whatever we have: the JD parsed this session
+  // if any, otherwise the role's own saved fields. The latter is a weaker basis
+  // than a full JD (the reasoning will note it) — re-paste the posting for a
+  // thorough read.
+  function scoreCurrent() {
+    const jdText = lastJd || roleTextFromForm();
+    runScoring({ jdText, salary: form.salary, location: form.location });
+  }
+
+  function roleTextFromForm() {
+    return [
+      form.title && `Title: ${form.title}`,
+      form.orgId && form.orgId !== NEW_ORG && `Company: ${orgName(form.orgId)}`,
+      form.location && `Location: ${form.location}`,
+      form.salary && `Compensation: ${form.salary}`,
+      form.fitNotes
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  // Something to score from: a parsed JD this session, or saved role detail.
+  const canScore = !!(lastJd || form.title || form.fitNotes);
+
+  // Dirty = any field changed, a new org typed, or a fresh score to persist.
+  const isDirty =
+    JSON.stringify(form) !== JSON.stringify(initialForm) ||
+    scoredThisSession ||
+    (form.orgId === NEW_ORG && newOrgName.trim() !== '');
 
   // Contacts to offer for linking: those at the selected org, plus any already
   // linked (so an existing link never silently disappears from the list).
@@ -115,10 +158,12 @@ export default function ApplicationForm({ app, onClose }) {
       const name = newOrgName.trim();
       orgId = name ? add('orgs', { name }).id : '';
     }
-    // A fresh verdict scored this session is stamped and stored on the app
-    // itself (the latest fit lives with the role); omitting it on a plain edit
-    // preserves any existing verdict via the upsert merge.
-    const scored = fit ? { ...fit, scoredAt: new Date().toISOString() } : null;
+    // A verdict scored THIS session is stamped and stored on the app itself
+    // (the latest fit lives with the role); omitting it on a plain edit
+    // preserves any existing verdict via the upsert merge, and avoids logging a
+    // duplicate timeline entry every time the form is saved.
+    const scored =
+      scoredThisSession && fit ? { ...fit, scoredAt: new Date().toISOString() } : null;
     const record = {
       ...(app?.id ? { id: app.id } : {}),
       ...form,
@@ -146,7 +191,13 @@ export default function ApplicationForm({ app, onClose }) {
 
   return (
     <Modal
-      title={isEdit ? 'Edit application' : 'New application'}
+      title={
+        isEdit
+          ? [form.title || 'Untitled role', orgName(form.orgId)]
+              .filter(Boolean)
+              .join(' · ')
+          : 'New application'
+      }
       onClose={onClose}
       wide
       footer={
@@ -155,10 +206,20 @@ export default function ApplicationForm({ app, onClose }) {
             <ShareButton app={app} orgLabel={orgName(app.orgId)} />
           )}
           <button type="button" className="btn" onClick={onClose}>
-            Cancel
+            Close
           </button>
-          <button type="submit" form="application-form" className="btn btn--primary">
-            {isEdit ? 'Save changes' : 'Add application'}
+          <button
+            type="submit"
+            form="application-form"
+            className="btn btn--primary"
+            disabled={fitStatus === 'scoring' || (isEdit && !isDirty)}
+            title={fitStatus === 'scoring' ? 'Waiting for the fit score…' : undefined}
+          >
+            {fitStatus === 'scoring'
+              ? 'Scoring…'
+              : isEdit
+                ? 'Save changes'
+                : 'Add application'}
           </button>
         </>
       }
@@ -181,7 +242,9 @@ export default function ApplicationForm({ app, onClose }) {
         status={fitStatus}
         fit={fit}
         error={fitError}
-        onRescore={lastJd ? () => runScoring({ jdText: lastJd, salary: form.salary, location: form.location }) : null}
+        hasCriteria={profileHasCriteria}
+        canScore={canScore}
+        onScore={scoreCurrent}
       />
 
       <form id="application-form" onSubmit={handleSubmit}>
@@ -448,17 +511,17 @@ function PasteJdPanel({ onParsed, userState }) {
 }
 
 // --- Fit-scoring panel -----------------------------------------------------
-// Shows the auto-run verdict below the paste panel. Saved as an Analysis entry
-// when the form is submitted.
-function FitPanel({ status, fit, error, onRescore }) {
-  if (status === 'idle') return null;
-
-  if (status === 'nocriteria') {
+// Shows the verdict (auto-run after a parse, loaded from a prior score, or run
+// on demand). The on-demand "Score" button works for any role and is the way to
+// re-score after editing your Fit Criteria. Persisted on the app on submit.
+function FitPanel({ status, fit, error, hasCriteria, canScore, onScore }) {
+  // No criteria yet — point to setup. (Covers both initial idle and a scoring
+  // attempt that found nothing to score against.)
+  if (!hasCriteria && (status === 'idle' || status === 'nocriteria')) {
     return (
       <div className={styles.fitHint}>
         Want to see how closely a role fits? Set up your{' '}
-        <Link to="/settings">Fit Criteria</Link> and the next paste scores
-        automatically.
+        <Link to="/settings">Fit Criteria</Link> — then score any role here.
       </div>
     );
   }
@@ -472,12 +535,27 @@ function FitPanel({ status, fit, error, onRescore }) {
     );
   }
 
+  // Idle with criteria set: offer to score on demand.
+  if (status === 'idle') {
+    if (!canScore) return null;
+    return (
+      <div className={styles.fitPrompt}>
+        <span className={styles.pasteHint}>
+          Score this role against your Fit Criteria.
+        </span>
+        <button type="button" className="btn btn--sm" onClick={onScore}>
+          ✦ Score this role
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.fitPanel}>
       <div className={styles.fitHead}>
         <strong>Fit against your criteria</strong>
-        {onRescore && status !== 'scoring' && (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onRescore}>
+        {status !== 'scoring' && (
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onScore}>
             Re-score
           </button>
         )}
@@ -487,7 +565,9 @@ function FitPanel({ status, fit, error, onRescore }) {
       {status === 'done' && fit && (
         <>
           <FitVerdict fit={fit} />
-          {onRescore && <RefineCriteria onRefined={onRescore} />}
+          <Link to="/settings" className={styles.fitRefine}>
+            Adjust your Fit Criteria →
+          </Link>
         </>
       )}
     </div>

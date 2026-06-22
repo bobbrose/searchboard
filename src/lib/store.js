@@ -162,7 +162,7 @@ export function decodeShareableApp(encoded) {
 const DAILY_LIMITS = {
   parse: { key: 'searchboard_parse_count_v1', limit: 50 },
   score: { key: 'searchboard_score_count_v1', limit: 25 },
-  resume: { key: 'searchboard_resume_count_v1', limit: 5 }
+  resume: { key: 'searchboard_resume_count_v1', limit: 50 }
 };
 
 function today() {

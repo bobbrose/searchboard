@@ -9,7 +9,7 @@
 
 import { isRateLimited, clientIp } from './_ratelimit.js';
 
-const MAX_PER_HOUR = 10; // résumé seeding is a once-in-a-while action
+const MAX_PER_HOUR = 30; // résumé seeding is a once-in-a-while action
 
 const SYSTEM_PROMPT = `You extract a job-search starting point from a résumé. Respond with ONLY valid JSON — no markdown, no code fences, no prose outside the object. The schema is exactly:
 {

@@ -493,12 +493,11 @@ function applyParsed(parsed, { db, form, set, setNewOrgName, meta }) {
   }
 }
 
-// --- Paste-a-JD panel ------------------------------------------------------
-// Two ways to auto-fill, shown together: paste a job-board URL (Greenhouse /
-// Lever) or paste the full description. Whichever is filled gets parsed — a URL
-// takes priority since it also gives us the posting link for free.
+// --- Job-posting auto-fill panel -------------------------------------------
+// Always shown at the top of the form: paste a job-board URL (Greenhouse /
+// Lever) or the full description and we fill the fields. If both are filled the
+// description wins, so an unsupported URL can be salvaged by pasting text.
 function PasteJdPanel({ onParsed, userState }) {
-  const [open, setOpen] = useState(false);
   const [url, setUrl] = useState('');
   const [text, setText] = useState('');
   const [status, setStatus] = useState('idle'); // idle | loading | error
@@ -509,7 +508,9 @@ function PasteJdPanel({ onParsed, userState }) {
 
   async function parse() {
     if (!hasInput) return;
-    const useUrl = !!url.trim();
+    // Prefer the pasted description when both are filled — so a URL we can't
+    // handle can be salvaged by pasting the text without clearing the URL.
+    const useUrl = !!url.trim() && !text.trim();
     setStatus('loading');
     setError('');
     try {
@@ -536,7 +537,6 @@ function PasteJdPanel({ onParsed, userState }) {
         jdText: data._source || (useUrl ? '' : text)
       });
       setStatus('idle');
-      setOpen(false);
       setUrl('');
       setText('');
     } catch {
@@ -545,32 +545,15 @@ function PasteJdPanel({ onParsed, userState }) {
     }
   }
 
-  if (!open) {
-    return (
-      <div className={styles.pastePrompt}>
-        <div>
-          <strong>Have the job posting?</strong>{' '}
-          <span className={styles.pasteHint}>
-            Paste a link or the description and we'll fill in the fields for you.
-          </span>
-        </div>
-        <button type="button" className="btn btn--sm" onClick={() => setOpen(true)}>
-          ✦ Auto-fill from a job posting
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.pastePanel}>
-      <label className={styles.pasteLabel}>Paste a job-posting URL</label>
+      <label className={styles.pasteLabel}>Job posting</label>
       <input
         type="url"
         className={styles.pasteUrl}
         value={url}
         onChange={e => setUrl(e.target.value)}
         placeholder="https://…  (Greenhouse or Lever)"
-        autoFocus
       />
       <div className={styles.pasteOr}>
         <span>or paste the full description</span>
@@ -581,7 +564,6 @@ function PasteJdPanel({ onParsed, userState }) {
         onChange={e => setText(e.target.value)}
         placeholder="Paste the full job description here…"
         rows={6}
-        disabled={!!url.trim()}
       />
       {error && <p className={styles.pasteError}>{error}</p>}
       {!canParse && (
@@ -591,16 +573,6 @@ function PasteJdPanel({ onParsed, userState }) {
         </p>
       )}
       <div className={styles.pasteActions}>
-        <button
-          type="button"
-          className="btn btn--sm"
-          onClick={() => {
-            setOpen(false);
-            setError('');
-          }}
-        >
-          Cancel
-        </button>
         <button
           type="button"
           className="btn btn--primary btn--sm"

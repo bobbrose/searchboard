@@ -69,6 +69,51 @@
   min-width: 160px;
 }
 
+.dimensions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dimension {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dimLabel {
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  padding: 5px 12px;
+  font-size: 13px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: var(--accent);
+}
+.chipOn {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 550;
+}
+
 .check {
   display: flex;
   align-items: center;

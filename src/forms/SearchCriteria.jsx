@@ -1,5 +1,6 @@
 import TagInput from '../components/TagInput.jsx';
 import { useDb } from '../lib/db.jsx';
+import { IC_CODING_OPTIONS, COMPANY_DIMENSIONS, PRODUCT_INFRA_OPTIONS } from '../lib/fit.js';
 import styles from './SearchCriteria.module.css';
 
 // The living criteria profile — source of truth, edited any time in Settings.
@@ -71,18 +72,17 @@ export default function SearchCriteria({ embedded = false }) {
             step="1000"
           />
         </Group>
-        <Group label="Max IC-coding %" hint="Leave blank for no ceiling.">
-          <input
-            type="number"
-            className={styles.short}
-            value={hard.maxIcCodingPercent ?? ''}
-            onChange={e =>
-              setHard({ maxIcCodingPercent: numOrNull(e.target.value) })
-            }
-            placeholder="50"
-            min="0"
-            max="100"
-          />
+        <Group label="Hands-on IC coding" hint="How much individual coding you want.">
+          <select
+            value={hard.icCoding || ''}
+            onChange={e => setHard({ icCoding: e.target.value })}
+          >
+            {IC_CODING_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
         </Group>
       </div>
 
@@ -132,23 +132,63 @@ export default function SearchCriteria({ embedded = false }) {
         Judgment calls the AI weighs when scoring — not pattern-matched by code.
       </p>
 
-      <Group label="Product vs. infra orientation">
-        <textarea
-          className={styles.area}
-          rows={2}
-          value={soft.productVsInfra || ''}
-          onChange={e => setSoft({ productVsInfra: e.target.value })}
-          placeholder="product-focused, full-stack — leaning away from infra-only mandates"
-        />
+      <Group
+        label="Product vs. infra orientation"
+        hint="Tap again to clear."
+      >
+        <div className={styles.chips}>
+          {PRODUCT_INFRA_OPTIONS.map(o => {
+            const selected = soft.productVsInfra === o.value;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                className={`${styles.chip} ${selected ? styles.chipOn : ''}`}
+                aria-pressed={selected}
+                onClick={() =>
+                  setSoft({ productVsInfra: selected ? '' : o.value })
+                }
+              >
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
       </Group>
 
-      <Group label="Preferred company type">
-        <input
-          type="text"
-          value={soft.companyType || ''}
-          onChange={e => setSoft({ companyType: e.target.value })}
-          placeholder="AI-first or mission-driven"
-        />
+      <Group
+        label="Preferred company attributes"
+        hint="Pick any that matter in each dimension."
+      >
+        <div className={styles.dimensions}>
+          {COMPANY_DIMENSIONS.map(dim => (
+            <div key={dim.label} className={styles.dimension}>
+              <span className={styles.dimLabel}>{dim.label}</span>
+              <div className={styles.chips}>
+                {dim.options.map(attr => {
+                  const selected = (soft.companyAttributes || []).includes(attr);
+                  return (
+                    <button
+                      key={attr}
+                      type="button"
+                      className={`${styles.chip} ${selected ? styles.chipOn : ''}`}
+                      aria-pressed={selected}
+                      onClick={() =>
+                        setSoft({
+                          companyAttributes: selected
+                            ? (soft.companyAttributes || []).filter(a => a !== attr)
+                            : [...(soft.companyAttributes || []), attr]
+                        })
+                      }
+                    >
+                      {attr}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       </Group>
 
       <Group
@@ -200,12 +240,13 @@ export default function SearchCriteria({ embedded = false }) {
 
   return (
     <section className={styles.card}>
-      <h2 className={styles.cardTitle}>Search Criteria</h2>
+      <h2 className={styles.cardTitle}>Fit Criteria</h2>
       <p className={styles.lead}>
-        Your criteria personalize fit scoring. Hard filters are checked in your
-        browser (no AI call); soft preferences guide the AI's judgment. Only
-        sent — transiently, never stored — when you score a role. Everything
-        round-trips through Export / Import.
+        What you want next. Each role you add is scored on how closely it{' '}
+        <em>fits these criteria</em> — not a judgment of you or the role, just
+        the overlap, and why. Hard filters are checked in your browser (no AI
+        call); soft preferences guide the AI's read. Sent only transiently when
+        scoring, never stored. Round-trips through Export / Import.
       </p>
       {body}
     </section>

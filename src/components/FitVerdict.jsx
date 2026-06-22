@@ -1,18 +1,10 @@
 import Badge from './Badge.jsx';
+import { FIT_LEVELS, ACTION_LEVELS } from '../lib/fit.js';
 import styles from './FitVerdict.module.css';
 
-// Renders a fit-scoring verdict: a verdict + priority badge row, the five
-// reasoning stages, and the cover-letter hook. Shared by the inline view in
-// ApplicationForm and the persisted entry in Analysis.
-
-const VERDICT_TONE = { apply: 'ok', conditional: 'warm', pass: 'stale' };
-const VERDICT_LABEL = { apply: 'Apply', conditional: 'Conditional', pass: 'Pass' };
-const PRIORITY_TONE = {
-  high: 'overdue',
-  'medium-high': 'warm',
-  medium: 'accent',
-  low: 'neutral'
-};
+// Two-axis verdict: Fit (how closely the role matches the criteria) and Action
+// (what to do — driven by fit, but able to override it). Shared by the inline
+// view in ApplicationForm, the Applications list, and the Analysis timeline.
 
 const STAGES = [
   ['peopleLeadership', 'People leadership'],
@@ -22,6 +14,19 @@ const STAGES = [
   ['redFlags', 'Red flags']
 ];
 
+// Just the two badges — reusable wherever a compact verdict chip is wanted.
+export function FitBadges({ fit }) {
+  if (!fit) return null;
+  const f = FIT_LEVELS[fit.fit];
+  const a = ACTION_LEVELS[fit.action];
+  return (
+    <span className={styles.badges}>
+      {f && <Badge tone={f.tone}>{f.label}</Badge>}
+      {a && <Badge tone={a.tone}>→ {a.label}</Badge>}
+    </span>
+  );
+}
+
 export default function FitVerdict({ fit, compact = false }) {
   if (!fit) return null;
   const reasoning = fit.reasoning || {};
@@ -29,14 +34,7 @@ export default function FitVerdict({ fit, compact = false }) {
   return (
     <div className={styles.wrap}>
       <div className={styles.head}>
-        <Badge tone={VERDICT_TONE[fit.verdict] || 'neutral'}>
-          {VERDICT_LABEL[fit.verdict] || fit.verdict}
-        </Badge>
-        {fit.priority && (
-          <Badge tone={PRIORITY_TONE[fit.priority] || 'neutral'}>
-            {fit.priority} priority
-          </Badge>
-        )}
+        <FitBadges fit={fit} />
         {fit._hardFilter && <span className={styles.note}>instant — no AI call</span>}
       </div>
 

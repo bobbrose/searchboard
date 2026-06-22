@@ -5,6 +5,56 @@
 // Anthropic call (VISION principle #6 — don't spend the shared key on a yes/no
 // a boolean can settle). Soft judgment lives server-side in /api/score-fit.
 
+// Hands-on IC-coding preference — a coarse 3-state choice rather than a false-
+// precision percentage (nobody knows the "real" number from a JD anyway).
+export const IC_CODING_OPTIONS = [
+  { value: '', label: 'No preference' },
+  { value: 'none', label: 'None — pure leadership' },
+  { value: 'hands-on', label: 'Some hands-on' },
+  { value: 'mostly', label: 'Primarily / mostly coding' }
+];
+
+// Curated company-attribute chips, grouped by dimension. A single "company
+// type" text box conflated several independent axes; grouping keeps each axis
+// legible while users pick whichever apply across all of them. Selections are
+// stored flat in softPreferences.companyAttributes. Soft signal; nuance lives
+// in softPreferences.notes.
+export const COMPANY_DIMENSIONS = [
+  { label: 'Stage / maturity', options: ['Early-stage', 'Growth-stage', 'Large / public'] },
+  {
+    label: 'Mission',
+    options: ['Mission-driven', 'Philanthropic / non-profit', 'Purely commercial']
+  },
+  { label: 'Tech posture', options: ['AI-first', 'AI-adopting', 'Not AI-centric'] },
+  {
+    label: 'Domain / model',
+    options: ['Devtools / infra', 'B2B SaaS', 'Consumer', 'Research-oriented']
+  },
+  { label: 'Culture', options: ['Remote-first', 'Sustainable pace', 'Hypergrowth'] }
+];
+
+// Product↔infra orientation — a spectrum, not a binary, so a 3-way single-
+// select with a middle "balanced" rather than an either/or toggle.
+export const PRODUCT_INFRA_OPTIONS = [
+  { value: 'product', label: 'Product-focused' },
+  { value: 'balanced', label: 'Balanced / full-stack' },
+  { value: 'infra', label: 'Infra-focused' }
+];
+
+// Two orthogonal axes of a verdict, with display label + Badge tone:
+//   fit    — how closely the role matches the candidate's criteria (descriptive)
+//   action — what to do, driven by fit but able to override it (prescriptive)
+export const FIT_LEVELS = {
+  close: { label: 'Close fit', tone: 'ok' },
+  partial: { label: 'Partial fit', tone: 'warm' },
+  miss: { label: 'Miss', tone: 'stale' }
+};
+export const ACTION_LEVELS = {
+  apply: { label: 'Apply', tone: 'accent' },
+  wait: { label: 'Wait', tone: 'warm' },
+  pass: { label: 'Pass', tone: 'stale' }
+};
+
 // True if the profile carries enough signal to score against.
 export function hasCriteria(profile) {
   const p = profile || {};
@@ -15,11 +65,11 @@ export function hasCriteria(profile) {
       p.differentiators?.length ||
       p.redFlagPatterns?.length ||
       hard.compFloor != null ||
-      hard.maxIcCodingPercent != null ||
+      hard.icCoding ||
       hard.domainExclusions?.length ||
       hard.remoteRequired ||
       soft.productVsInfra ||
-      soft.companyType ||
+      soft.companyAttributes?.length ||
       soft.notes
   );
 }
@@ -52,11 +102,11 @@ export function parseSalaryFloor(salary) {
 
 const ONSITE_RE = /\b(on-?site|on site|in-office|in office|hybrid)\b/i;
 
-// Returns an instant-pass verdict { verdict:'pass', priority, reasoning,
-// coverLetterHook } if a deterministic hard filter trips, else null (meaning:
-// proceed to AI scoring). Only unambiguous boolean blocks live here — comp
-// floor and a remote-required conflict. Domain keywords are intentionally left
-// to the model (a weak heuristic; a false positive would waste a call).
+// Returns an instant verdict ({ fit:'miss', action:'pass', … }) if a
+// deterministic hard filter trips, else null (meaning: proceed to AI scoring).
+// Only unambiguous boolean blocks live here — comp floor and a remote-required
+// conflict. Domain keywords are intentionally left to the model (a weak
+// heuristic; a false positive would waste a call).
 export function checkHardFilters(profile, { salary, jdText = '', location = '' }) {
   const hard = profile?.hardFilters || {};
 
@@ -90,7 +140,9 @@ export function checkHardFilters(profile, { salary, jdText = '', location = '' }
 export function summarizeFit(fit) {
   if (!fit) return '';
   const r = fit.reasoning || {};
-  const lines = [`Verdict: ${fit.verdict}${fit.priority ? ` (${fit.priority} priority)` : ''}`];
+  const fitLabel = FIT_LEVELS[fit.fit]?.label || fit.fit;
+  const actionLabel = ACTION_LEVELS[fit.action]?.label || fit.action;
+  const lines = [`${fitLabel} → ${actionLabel}`];
   const add = (label, v) => v && lines.push(`${label}: ${v}`);
   add('People leadership', r.peopleLeadership);
   add('Domain fit', r.domainFit);
@@ -103,8 +155,8 @@ export function summarizeFit(fit) {
 
 function pass(comp) {
   return {
-    verdict: 'pass',
-    priority: 'low',
+    fit: 'miss',
+    action: 'pass',
     reasoning: {
       peopleLeadership: '',
       domainFit: '',

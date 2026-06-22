@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PageHeader from '../components/PageHeader.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import Badge from '../components/Badge.jsx';
+import { FitBadges } from '../components/FitVerdict.jsx';
 import ApplicationForm from '../forms/ApplicationForm.jsx';
 import { useDb, useSelectors } from '../lib/db.jsx';
 import { STAGES } from '../lib/store.js';
@@ -129,6 +130,11 @@ function AppCard({ app, onEdit, onMove }) {
           {app.location && <span>{app.location}</span>}
           {app.fitScore ? <Stars score={app.fitScore} /> : null}
         </div>
+        {app.fitVerdict && (
+          <div className={styles.cardFit}>
+            <FitBadges fit={app.fitVerdict} />
+          </div>
+        )}
         {contacts.length > 0 && (
           <p className={styles.cardContacts}>
             ☺ {contacts.map(c => c.name).join(', ')}
@@ -186,6 +192,7 @@ function ListView({ onEdit }) {
             <th onClick={() => toggleSort('title')}>Role{arrow('title')}</th>
             <th onClick={() => toggleSort('org')}>Org{arrow('org')}</th>
             <th onClick={() => toggleSort('stage')}>Stage{arrow('stage')}</th>
+            <th onClick={() => toggleSort('fit')}>Fit{arrow('fit')}</th>
             <th>Location</th>
             <th onClick={() => toggleSort('appliedDate')}>Applied{arrow('appliedDate')}</th>
             <th className={styles.actionsCol}></th>
@@ -199,6 +206,7 @@ function ListView({ onEdit }) {
               <td>
                 <Badge tone={STAGE_TONE[app.stage]}>{app.stage}</Badge>
               </td>
+              <td>{app.fitVerdict ? <FitBadges fit={app.fitVerdict} /> : null}</td>
               <td>{app.location}</td>
               <td>{formatDate(app.appliedDate)}</td>
               <td className={styles.actionsCol} onClick={e => e.stopPropagation()}>
@@ -223,10 +231,18 @@ function ListView({ onEdit }) {
   );
 }
 
+const ACTION_RANK = { apply: 3, wait: 2, pass: 1 };
+const FIT_RANK = { close: 3, partial: 2, miss: 1 };
+
 function sortValue(app, key, orgName) {
   if (key === 'org') return orgName(app.orgId).toLowerCase();
   if (key === 'stage') return STAGES.indexOf(app.stage);
   if (key === 'title') return (app.title || '').toLowerCase();
+  if (key === 'fit') {
+    const v = app.fitVerdict;
+    // Rank by recommended action first, then closeness; unscored sort last.
+    return v ? (ACTION_RANK[v.action] || 0) * 10 + (FIT_RANK[v.fit] || 0) : 0;
+  }
   return app[key] || '';
 }
 

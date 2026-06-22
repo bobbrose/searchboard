@@ -49,15 +49,15 @@ export default function Dashboard() {
       {showSetupBanner && (
         <div className={styles.setupBanner}>
           <div>
-            <strong>Personalize your fit scoring.</strong>{' '}
+            <strong>Set up your Fit Criteria.</strong>{' '}
             <span className={styles.setupHint}>
-              Set your target roles, comp floor, and deal-breakers — and every
-              role you paste gets scored against them.
+              Your target roles, comp floor, and deal-breakers — then every role
+              you add is scored on how closely it fits.
             </span>
           </div>
           <div className={styles.setupActions}>
             <button className="btn btn--sm btn--primary" onClick={() => setSetupOpen(true)}>
-              Set up criteria
+              Set up Fit Criteria
             </button>
             <button className="btn btn--ghost btn--sm" onClick={dismissBanner}>
               Dismiss

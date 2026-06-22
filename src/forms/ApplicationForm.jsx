@@ -115,25 +115,29 @@ export default function ApplicationForm({ app, onClose }) {
       const name = newOrgName.trim();
       orgId = name ? add('orgs', { name }).id : '';
     }
+    // A fresh verdict scored this session is stamped and stored on the app
+    // itself (the latest fit lives with the role); omitting it on a plain edit
+    // preserves any existing verdict via the upsert merge.
+    const scored = fit ? { ...fit, scoredAt: new Date().toISOString() } : null;
     const record = {
       ...(app?.id ? { id: app.id } : {}),
       ...form,
       orgId,
-      fitScore: form.fitScore === '' ? null : Number(form.fitScore)
+      fitScore: form.fitScore === '' ? null : Number(form.fitScore),
+      ...(scored ? { fitVerdict: scored } : {})
     };
     const saved = upsert('apps', record);
 
-    // Persist a fresh fit verdict as a first-class Analysis entry, linked to
-    // the (possibly just-created) app. Only a verdict scored this session is
-    // written — opening an existing app and saving without re-scoring won't.
-    if (fit) {
+    // Also log it to the Analysis timeline (history), linked to the
+    // (possibly just-created) app. Only a verdict scored this session writes one.
+    if (scored) {
       add('analyses', {
         type: 'Fit scoring',
         title: `Fit: ${form.title || 'role'}`,
         appId: saved.id,
         orgId,
-        body: summarizeFit(fit),
-        fit
+        body: summarizeFit(scored),
+        fit: scored
       });
     }
 
@@ -452,8 +456,8 @@ function FitPanel({ status, fit, error, onRescore }) {
   if (status === 'nocriteria') {
     return (
       <div className={styles.fitHint}>
-        Want a fit verdict against your criteria? Set up your{' '}
-        <Link to="/settings">Search Criteria</Link> and the next paste scores
+        Want to see how closely a role fits? Set up your{' '}
+        <Link to="/settings">Fit Criteria</Link> and the next paste scores
         automatically.
       </div>
     );

@@ -15,10 +15,10 @@ import { isRateLimited, clientIp } from './_ratelimit.js';
 
 const MAX_PER_HOUR = 30; // higher than parse: scoring auto-runs per parse + re-scores
 
-const SYSTEM_PROMPT = `You evaluate a single job posting against a specific candidate's criteria profile and return a personalized fit verdict. Respond with ONLY valid JSON — no markdown, no code fences, no prose outside the object. The schema is exactly:
+const SYSTEM_PROMPT = `You measure how closely a single job posting matches a specific candidate's stated criteria, and recommend an action. Respond with ONLY valid JSON — no markdown, no code fences, no prose outside the object. The schema is exactly:
 {
-  "verdict": "pass" | "conditional" | "apply",
-  "priority": "low" | "medium" | "medium-high" | "high",
+  "fit": "miss" | "partial" | "close",
+  "action": "apply" | "wait" | "pass",
   "reasoning": {
     "peopleLeadership": string,
     "domainFit": string,
@@ -29,18 +29,27 @@ const SYSTEM_PROMPT = `You evaluate a single job posting against a specific cand
   "coverLetterHook": string
 }
 
-Apply this five-stage framework in order, and let earlier stages dominate the verdict:
-1. People-leadership primacy — does the role match the candidate's desired leadership-vs-IC balance? This matters most.
-2. Domain fit — does the company/product domain align with their targets and avoid their exclusions?
-3. Comp — does stated compensation clear their floor? If comp isn't stated, say so; don't assume.
+"fit" measures ONLY how closely the role matches the candidate's stated criteria. It is NOT a judgment of the candidate's ability or of the role's quality — only the degree of overlap with what they said they want:
+- "close": matches most or all of their stated criteria.
+- "partial": matches some criteria, misses others.
+- "miss": conflicts with key criteria, or matches little of what they want.
+
+"action" is your recommendation for what the candidate should do. It is informed by fit but can diverge from it because of other factors:
+- A materially better-than-required opportunity (e.g. comp well above their floor, an exceptional scope/title jump) can warrant "apply" even on a "partial" fit.
+- Serious red flags, or a stated deal-breaker, can warrant "wait" or "pass" even on a "close" fit.
+- "apply" = worth a serious application now; "wait" = promising but hold for more info or better timing; "pass" = not worth pursuing.
+When action diverges from fit, say why in the relevant reasoning field.
+
+Work through this five-stage framework, letting earlier stages weigh most:
+1. People-leadership — does the role match the candidate's desired leadership-vs-IC-coding balance? Weigh this most.
+2. Domain fit — does the company/product domain and attributes align with their targets and avoid their exclusions?
+3. Comp — does stated compensation clear their floor, and by how much? If comp isn't stated, say so; don't assume.
 4. Stack alignment — how well does the tech/scope match their background and preferences?
-5. Red-flag check — scan the JD language for the candidate's stated red-flag patterns and any obvious misrepresentations (e.g. an "EM/Director" title with heavy hands-on IC coding expectations).
+5. Red-flag check — scan the JD language for the candidate's stated red-flag patterns and obvious misrepresentations (e.g. an "EM/Director" title with heavy hands-on IC coding expectations).
 
-Each reasoning field is 2-3 sentences, plain and factual, in the same neutral tone as a recruiter's honest read — reference the candidate's actual criteria, don't just restate the JD. If the profile lacks data for a stage, say what's missing rather than inventing a judgment.
+Each reasoning field is 2-3 sentences, plain and factual, like a trusted recruiter's honest read — reference the candidate's actual criteria, don't just restate the JD. If the profile lacks data for a stage, say what's missing rather than inventing a judgment.
 
-verdict: "apply" = strong match worth a serious application; "conditional" = worth it only if specific concerns check out; "pass" = not a fit.
-priority: how urgently this deserves the candidate's limited application energy.
-coverLetterHook: one or two sentences the candidate could adapt as an opening hook, drawing on their differentiators where they connect to this role. Empty string if verdict is "pass".`;
+coverLetterHook: one or two sentences the candidate could adapt as an opening hook, drawing on their differentiators where they connect to this role. Empty string if action is "pass".`;
 
 // Turn the profile into a compact, labeled block for the user message. Only
 // fields that carry signal; skip empties to keep the payload (and cost) small.
@@ -53,16 +62,28 @@ function profileToText(p = {}) {
   if (p.targetTitles?.length) lines.push(`Target titles: ${list(p.targetTitles)}`);
   if (p.homeState) lines.push(`Home location: ${p.homeState}`);
   if (hard.compFloor != null) lines.push(`Comp floor (USD base): ${hard.compFloor}`);
-  if (hard.maxIcCodingPercent != null)
-    lines.push(`Max acceptable IC-coding %: ${hard.maxIcCodingPercent}`);
+  const IC_CODING = {
+    none: 'wants pure leadership, no hands-on IC coding',
+    'hands-on': 'wants some hands-on IC coding',
+    mostly: 'wants a primarily/mostly hands-on coding role'
+  };
+  if (hard.icCoding && IC_CODING[hard.icCoding])
+    lines.push(`Hands-on coding: ${IC_CODING[hard.icCoding]}`);
   if (hard.domainExclusions?.length)
     lines.push(`Excluded domains: ${list(hard.domainExclusions)}`);
   if (hard.remoteRequired) lines.push('Remote required: yes');
   if (hard.relocationExceptions?.length)
     lines.push(`In-person acceptable in: ${list(hard.relocationExceptions)}`);
   if (hard.notes) lines.push(`Hard-filter qualifiers: ${hard.notes}`);
-  if (soft.productVsInfra) lines.push(`Product vs. infra: ${soft.productVsInfra}`);
-  if (soft.companyType) lines.push(`Preferred company type: ${soft.companyType}`);
+  const PRODUCT_INFRA = {
+    product: 'prefers product-focused work',
+    balanced: 'prefers a balanced / full-stack role',
+    infra: 'prefers infrastructure-focused work'
+  };
+  if (soft.productVsInfra && PRODUCT_INFRA[soft.productVsInfra])
+    lines.push(`Product vs. infra: ${PRODUCT_INFRA[soft.productVsInfra]}`);
+  if (soft.companyAttributes?.length)
+    lines.push(`Preferred company attributes: ${list(soft.companyAttributes)}`);
   if (soft.notes) lines.push(`Other preferences: ${soft.notes}`);
   if (p.differentiators?.length)
     lines.push(`Differentiators: ${list(p.differentiators)}`);
@@ -95,7 +116,7 @@ export default async function handler(req, res) {
   const profileText = profileToText(profile);
   if (!profileText) {
     res.status(400).json({
-      error: 'No criteria to score against. Set up your Search Criteria first.'
+      error: 'No criteria to score against. Set up your Fit Criteria first.'
     });
     return;
   }

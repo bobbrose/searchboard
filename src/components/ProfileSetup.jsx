@@ -8,7 +8,7 @@ import SearchCriteria from '../forms/SearchCriteria.jsx';
 export default function ProfileSetup({ onClose }) {
   return (
     <Modal
-      title="Set up your search criteria"
+      title="Set up your fit criteria"
       onClose={onClose}
       wide
       footer={
@@ -18,10 +18,10 @@ export default function ProfileSetup({ onClose }) {
       }
     >
       <p style={{ marginTop: 0, color: 'var(--text-muted)', fontSize: 14 }}>
-        Tell Searchboard what you're after and it'll score each role against your
-        criteria — instantly rejecting deal-breakers and giving an AI read on the
-        rest. Everything's optional and editable later in Settings. Skip if you'd
-        rather not bother.
+        Tell Searchboard what you're after, and every role you add gets scored on
+        how closely it fits — instantly rejecting deal-breakers and giving an AI
+        read on the rest. Everything's optional and editable later in Settings.
+        Skip if you'd rather not bother.
       </p>
       <SearchCriteria embedded />
     </Modal>

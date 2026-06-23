@@ -1,20 +1,62 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import OrgForm from '../forms/OrgForm.jsx';
 import ApplicationForm from '../forms/ApplicationForm.jsx';
 import { useDb, useSelectors } from '../lib/db.jsx';
+import { findWebsite, withProtocol, displayUrl } from '../lib/website.js';
 import styles from './Orgs.module.css';
 
 export default function Orgs() {
-  const { db } = useDb();
+  const { db, upsert } = useDb();
   const [editing, setEditing] = useState(null); // org record, {} for new, or null
   const [editingApp, setEditingApp] = useState(null); // app to open in the editor
+  const [filling, setFilling] = useState(false);
 
   const orgs = [...db.orgs].sort((a, b) =>
     (a.name || '').localeCompare(b.name || '')
   );
+
+  // On open, backfill websites for any orgs missing one and persist them, so
+  // their cards light up with links. Sequential (one call at a time) to be easy
+  // on the shared key; findWebsite de-dupes per session and respects the daily
+  // cap, so this is safe to run each time the page mounts.
+  useEffect(() => {
+    const pending = db.orgs.filter(
+      o => (o.name || '').trim() && !(o.website || '').trim()
+    );
+    if (!pending.length) return;
+    let cancelled = false;
+    setFilling(true);
+    console.log(
+      `[searchboard] backfilling websites for ${pending.length} org(s) missing one…`
+    );
+    (async () => {
+      let i = 0;
+      for (const org of pending) {
+        if (cancelled) break;
+        i += 1;
+        console.log(`[searchboard] org ${i}/${pending.length}: ${org.name}`);
+        const site = await findWebsite({
+          name: org.name,
+          industry: org.industry,
+          location: org.location
+        });
+        if (cancelled) break;
+        if (site) upsert('orgs', { id: org.id, website: site });
+      }
+      if (!cancelled) {
+        setFilling(false);
+        console.log('[searchboard] org website backfill complete');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Run once for the orgs present when the page mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -22,7 +64,8 @@ export default function Orgs() {
         title="Orgs"
         subtitle={
           orgs.length
-            ? `${orgs.length} organization${orgs.length === 1 ? '' : 's'}`
+            ? `${orgs.length} organization${orgs.length === 1 ? '' : 's'}` +
+              (filling ? ' · finding websites…' : '')
             : undefined
         }
       >
@@ -73,10 +116,8 @@ function OrgCard({ org, onEdit, onOpenJob }) {
   const apps = appsForOrg(org.id);
   const contacts = contactsForOrg(org.id);
 
-  // Strip protocol for a tidy display label.
-  const hostLabel = org.website
-    ? org.website.replace(/^https?:\/\//, '').replace(/\/$/, '')
-    : '';
+  // Tidy display label (scheme/trailing slash stripped).
+  const hostLabel = org.website ? displayUrl(org.website) : '';
 
   return (
     <article className={styles.card}>
@@ -124,7 +165,7 @@ function OrgCard({ org, onEdit, onOpenJob }) {
           {hostLabel && (
             <a
               className={styles.chip}
-              href={org.website}
+              href={withProtocol(org.website)}
               target="_blank"
               rel="noreferrer"
               onClick={e => e.stopPropagation()}

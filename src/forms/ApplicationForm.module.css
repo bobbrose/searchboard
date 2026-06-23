@@ -1,3 +1,16 @@
+/* Clickable org website shown under the Organization select */
+.orgUrl {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--accent-text);
+  text-decoration: none;
+  word-break: break-all;
+}
+.orgUrl:hover {
+  text-decoration: underline;
+}
+
 /* Seniority / scope info tooltip contents */
 .scaleHead {
   display: block;

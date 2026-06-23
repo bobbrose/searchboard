@@ -146,7 +146,9 @@ export function importFromFile(file) {
 const DAILY_LIMITS = {
   parse: { key: 'searchboard_parse_count_v1', limit: 50 },
   score: { key: 'searchboard_score_count_v1', limit: 25 },
-  resume: { key: 'searchboard_resume_count_v1', limit: 50 }
+  resume: { key: 'searchboard_resume_count_v1', limit: 50 },
+  website: { key: 'searchboard_website_count_v1', limit: 500 },
+  org: { key: 'searchboard_org_count_v1', limit: 500 }
 };
 
 function today() {

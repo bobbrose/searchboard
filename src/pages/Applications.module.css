@@ -199,6 +199,17 @@
   font-size: 13px;
   color: var(--text-muted);
 }
+.cardUrl {
+  display: inline-block;
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--accent-text);
+  text-decoration: none;
+  word-break: break-all;
+}
+.cardUrl:hover {
+  text-decoration: underline;
+}
 .cardMeta {
   display: flex;
   align-items: center;

@@ -102,7 +102,9 @@ export default function Settings() {
   const USAGE_LABELS = {
     parse: 'Job parsing',
     score: 'Fit scoring',
-    resume: 'Résumé seeding'
+    resume: 'Résumé seeding',
+    website: 'Website lookup',
+    org: 'Org lookup'
   };
   const usageRows = Object.entries(USAGE_LABELS)
     .map(([bucket, label]) => ({ bucket, label, ...(usage[bucket] || {}) }))

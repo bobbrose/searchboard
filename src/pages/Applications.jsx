@@ -9,6 +9,7 @@ import { useDb, useSelectors } from '../lib/db.jsx';
 import { STAGES, exportAsFile, importFromFile, mergeDB } from '../lib/store.js';
 import { hasCriteria } from '../lib/fit.js';
 import { formatDate, today } from '../lib/dates.js';
+import { withProtocol, displayUrl } from '../lib/website.js';
 import styles from './Applications.module.css';
 
 const STAGE_TONE = {
@@ -308,7 +309,8 @@ function KanbanView({ onEdit }) {
 }
 
 function AppCard({ app, onEdit, onMove, dragging, onDragStart, onDragEnd }) {
-  const { orgName, contactLinksForApp } = useSelectors();
+  const { orgById, contactLinksForApp } = useSelectors();
+  const org = app.orgId ? orgById(app.orgId) : null;
   const links = contactLinksForApp(app);
   const referrers = links.filter(l => l.relation === 'referrer');
   const others = links.filter(l => l.relation !== 'referrer');
@@ -324,9 +326,31 @@ function AppCard({ app, onEdit, onMove, dragging, onDragStart, onDragEnd }) {
       }}
       onDragEnd={onDragEnd}
     >
-      <button className={styles.cardMain} onClick={onEdit}>
+      <div
+        className={styles.cardMain}
+        role="button"
+        tabIndex={0}
+        onClick={onEdit}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onEdit();
+          }
+        }}
+      >
         <h3 className={styles.cardTitle}>{app.title || 'Untitled job'}</h3>
-        {app.orgId && <p className={styles.cardOrg}>{orgName(app.orgId)}</p>}
+        {org && <p className={styles.cardOrg}>{org.name}</p>}
+        {org?.website && (
+          <a
+            className={styles.cardUrl}
+            href={withProtocol(org.website)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+          >
+            {displayUrl(org.website)}
+          </a>
+        )}
         <div className={styles.cardMeta}>
           {app.location && <span>{app.location}</span>}
           {app.fitScore ? <Stars score={app.fitScore} /> : null}
@@ -349,7 +373,7 @@ function AppCard({ app, onEdit, onMove, dragging, onDragStart, onDragEnd }) {
         {app.stage === 'Closed' && app.closeReason && (
           <p className={styles.cardCloseReason}>✕ {app.closeReason}</p>
         )}
-      </button>
+      </div>
       <div className={styles.cardFooter}>
         <select
           className={styles.moveSelect}

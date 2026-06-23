@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Modal from '../components/Modal.jsx';
 import { Field, TextField, TextArea, SelectField, FieldRow } from '../components/Field.jsx';
@@ -6,6 +6,7 @@ import { useDb, useSelectors, normalizeContactLinks } from '../lib/db.jsx';
 import { STAGES, CONTACT_RELATIONS } from '../lib/store.js';
 import { canUseParseToday, recordParseUse, canUseToday, recordUse, recordTokenUse } from '../lib/store.js';
 import { hasCriteria, checkHardFilters, summarizeFit } from '../lib/fit.js';
+import { findWebsite, findOrg, withProtocol, displayUrl } from '../lib/website.js';
 import { today } from '../lib/dates.js';
 import FitVerdict from '../components/FitVerdict.jsx';
 import InfoDot from '../components/InfoDot.jsx';
@@ -79,6 +80,65 @@ export default function ApplicationForm({ app, onClose }) {
   const profileHasCriteria = hasCriteria(db.profile);
 
   const set = (key, value) => setForm(f => ({ ...f, [key]: value }));
+
+  // The saved org currently selected (not "+ New…" or "— No org —"). Its
+  // website is shown under the field; if it has none, we look one up and persist
+  // it to the org so the link appears here and on the board card. De-duped.
+  const selectedOrg =
+    form.orgId && form.orgId !== NEW_ORG
+      ? db.orgs.find(o => o.id === form.orgId) || null
+      : null;
+  useEffect(() => {
+    if (!selectedOrg || (selectedOrg.website || '').trim()) return;
+    let cancelled = false;
+    findWebsite({
+      name: selectedOrg.name,
+      industry: selectedOrg.industry,
+      location: selectedOrg.location
+    }).then(site => {
+      if (!cancelled && site) upsert('orgs', { id: selectedOrg.id, website: site });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedOrg?.id, selectedOrg?.website]);
+
+  // Existing job with no org: infer the hiring company from the job's own text,
+  // link it to a matching org (creating one if needed), and persist both the
+  // job's org and the org's website. Runs once on open; de-duped by job id.
+  useEffect(() => {
+    if (!app?.id || form.orgId) return; // only saved jobs that lack an org
+    let cancelled = false;
+    findOrg({
+      appId: app.id,
+      title: form.title,
+      link: form.link,
+      location: form.location,
+      notes: [form.fitNotes, form.userNotes].filter(Boolean).join('\n'),
+      digest: lastJd
+    }).then(result => {
+      if (cancelled || !result) return;
+      const { company, website } = result;
+      const existing = db.orgs.find(
+        o => o.name.trim().toLowerCase() === company.toLowerCase()
+      );
+      let orgId;
+      if (existing) {
+        orgId = existing.id;
+        if (website && !(existing.website || '').trim())
+          upsert('orgs', { id: existing.id, website });
+      } else {
+        orgId = add('orgs', { name: company, ...(website ? { website } : {}) }).id;
+      }
+      upsert('apps', { id: app.id, orgId }); // link the existing job
+      set('orgId', orgId); // reflect it in the open form
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Run once for the job this form opened with.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // A score just finished. Reflect it in the panel, and for an ALREADY-SAVED
   // job persist the verdict immediately so closing the dialog (X, backdrop,
@@ -321,6 +381,16 @@ export default function ApplicationForm({ app, onClose }) {
               ))}
               <option value={NEW_ORG}>+ New organization…</option>
             </select>
+            {selectedOrg?.website && (
+              <a
+                className={styles.orgUrl}
+                href={withProtocol(selectedOrg.website)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {displayUrl(selectedOrg.website)}
+              </a>
+            )}
           </Field>
           <SelectField
             label="Stage"

@@ -41,6 +41,7 @@ export default function ApplicationForm({ app, onClose }) {
       location: app?.location || '',
       link: app?.link || '',
       fitNotes: app?.fitNotes || '',
+      userNotes: app?.userNotes || '',
       fitScore: app?.fitScore ?? '',
       // Typed links: [{ contactId, relation }]. Normalized so older records
       // (flat contactIds) load as untyped 'contact' links.
@@ -416,6 +417,14 @@ export default function ApplicationForm({ app, onClose }) {
           value={form.fitNotes}
           onChange={e => set('fitNotes', e.target.value)}
           placeholder="What the job involves, notable requirements, why it fits."
+          rows={4}
+        />
+
+        <TextArea
+          label="Your notes"
+          value={form.userNotes}
+          onChange={e => set('userNotes', e.target.value)}
+          placeholder="Your own notes on this job — anything you want to remember."
           rows={4}
         />
 

@@ -183,19 +183,59 @@ function KanbanView({ onEdit }) {
   // Closed jobs don't need pipeline prominence: pin the column to the far left
   // and collapse it by default so it sits out of the way until you want it.
   const [closedCollapsed, setClosedCollapsed] = useState(true);
+  // Drag-and-drop between columns. `dragId` is the card in flight; `dragOver`
+  // is the stage currently under the cursor (for the drop-target highlight).
+  const [dragId, setDragId] = useState(null);
+  const [dragOver, setDragOver] = useState(null);
   const order = ['Closed', ...STAGES.filter(s => s !== 'Closed')];
+
+  // The one place a stage change happens, whether via the dropdown or a drop.
+  function moveTo(app, stage) {
+    if (!app || app.stage === stage) return;
+    update('apps', app.id, {
+      stage,
+      // Stamp the applied date on first move into "Applied", without
+      // clobbering a date already recorded.
+      ...(stage === 'Applied' && !app.appliedDate ? { appliedDate: today() } : {})
+    });
+  }
+
+  // Drop-target wiring shared by the normal and collapsed column shells.
+  function dropProps(stage) {
+    return {
+      onDragOver: e => {
+        if (!dragId) return; // ignore drags that didn't originate from a card
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (dragOver !== stage) setDragOver(stage);
+      },
+      onDragLeave: e => {
+        // Only clear when the cursor leaves the column, not a child element.
+        if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(null);
+      },
+      onDrop: e => {
+        e.preventDefault();
+        const id = e.dataTransfer.getData('text/plain') || dragId;
+        moveTo(db.apps.find(a => a.id === id), stage);
+        setDragOver(null);
+        setDragId(null);
+      }
+    };
+  }
 
   return (
     <div className={styles.board}>
       {order.map(stage => {
         const apps = db.apps.filter(a => a.stage === stage);
         const isClosed = stage === 'Closed';
+        const overClass = dragOver === stage ? styles.columnDragOver : '';
 
         if (isClosed && closedCollapsed) {
           return (
             <section
               key={stage}
-              className={`${styles.column} ${styles.columnCollapsed}`}
+              className={`${styles.column} ${styles.columnCollapsed} ${overClass}`}
+              {...dropProps(stage)}
             >
               <button
                 type="button"
@@ -217,7 +257,11 @@ function KanbanView({ onEdit }) {
         }
 
         return (
-          <section key={stage} className={styles.column}>
+          <section
+            key={stage}
+            className={`${styles.column} ${overClass}`}
+            {...dropProps(stage)}
+          >
             <header className={styles.colHeader}>
               <span className={styles.colHeadLeft}>
                 {isClosed && (
@@ -240,17 +284,14 @@ function KanbanView({ onEdit }) {
                 <AppCard
                   key={app.id}
                   app={app}
+                  dragging={dragId === app.id}
                   onEdit={() => onEdit(app)}
-                  onMove={stage =>
-                    update('apps', app.id, {
-                      stage,
-                      // Stamp the applied date on first move into "Applied",
-                      // without clobbering a date already recorded.
-                      ...(stage === 'Applied' && !app.appliedDate
-                        ? { appliedDate: today() }
-                        : {})
-                    })
-                  }
+                  onMove={s => moveTo(app, s)}
+                  onDragStart={() => setDragId(app.id)}
+                  onDragEnd={() => {
+                    setDragId(null);
+                    setDragOver(null);
+                  }}
                 />
               ))}
               {apps.length === 0 && <p className={styles.colEmpty}>—</p>}
@@ -262,14 +303,23 @@ function KanbanView({ onEdit }) {
   );
 }
 
-function AppCard({ app, onEdit, onMove }) {
+function AppCard({ app, onEdit, onMove, dragging, onDragStart, onDragEnd }) {
   const { orgName, contactLinksForApp } = useSelectors();
   const links = contactLinksForApp(app);
   const referrers = links.filter(l => l.relation === 'referrer');
   const others = links.filter(l => l.relation !== 'referrer');
 
   return (
-    <article className={styles.card}>
+    <article
+      className={`${styles.card} ${dragging ? styles.cardDragging : ''}`}
+      draggable
+      onDragStart={e => {
+        e.dataTransfer.setData('text/plain', app.id);
+        e.dataTransfer.effectAllowed = 'move';
+        onDragStart();
+      }}
+      onDragEnd={onDragEnd}
+    >
       <button className={styles.cardMain} onClick={onEdit}>
         <h3 className={styles.cardTitle}>{app.title || 'Untitled job'}</h3>
         {app.orgId && <p className={styles.cardOrg}>{orgName(app.orgId)}</p>}

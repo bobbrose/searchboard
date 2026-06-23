@@ -156,12 +156,25 @@
   margin: var(--space-3) 0;
 }
 
+/* Drop-target highlight while dragging a card over a column. Uses an inset
+   ring + border tint so nothing reflows (the 1px border stays 1px). */
+.columnDragOver {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  background: var(--surface);
+}
+
 /* Cards */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow);
+  cursor: grab;
+}
+.cardDragging {
+  opacity: 0.5;
+  cursor: grabbing;
 }
 
 .cardMain {

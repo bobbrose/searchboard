@@ -222,8 +222,8 @@
   margin-top: var(--space-2);
 }
 
-/* Share + Delete sit together on the left of the footer; the auto margin
-   after Delete pushes Close/Save to the right. */
+/* Delete sits on the left of the footer; the auto margin after it pushes
+   Close/Save to the right. */
 .deleteBtn {
   margin-right: auto;
 }

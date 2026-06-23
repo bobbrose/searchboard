@@ -8,7 +8,6 @@ import ApplicationForm from '../forms/ApplicationForm.jsx';
 import { useDb, useSelectors } from '../lib/db.jsx';
 import { STAGES, exportAsFile, importFromFile, mergeDB } from '../lib/store.js';
 import { hasCriteria } from '../lib/fit.js';
-import { buildShareUrl } from '../lib/share.js';
 import { formatDate, today } from '../lib/dates.js';
 import styles from './Applications.module.css';
 
@@ -311,7 +310,6 @@ function AppCard({ app, onEdit, onMove }) {
             </option>
           ))}
         </select>
-        <ShareLink app={app} orgLabel={orgName(app.orgId)} />
       </div>
     </article>
   );
@@ -383,7 +381,6 @@ function ListView({ onEdit }) {
               <td>{app.location}</td>
               <td>{formatDate(app.appliedDate)}</td>
               <td className={styles.actionsCol} onClick={e => e.stopPropagation()}>
-                <ShareLink app={app} orgLabel={orgName(app.orgId)} />
                 <button
                   className="btn btn--ghost btn--sm btn--danger"
                   onClick={() => {
@@ -429,26 +426,3 @@ function Stars({ score }) {
   );
 }
 
-function ShareLink({ app, orgLabel }) {
-  const [copied, setCopied] = useState(false);
-  async function copy(e) {
-    e.stopPropagation();
-    const url = buildShareUrl(app, orgLabel);
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      window.prompt('Copy this share link:', url);
-    }
-  }
-  return (
-    <button
-      className="btn btn--ghost btn--sm"
-      onClick={copy}
-      title="Copy a read-only share link"
-    >
-      {copied ? '✓' : '🔗'}
-    </button>
-  );
-}

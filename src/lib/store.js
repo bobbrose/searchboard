@@ -139,22 +139,6 @@ export function importFromFile(file) {
   });
 }
 
-// --- Share-a-role: serialize a single application into a URL-safe string ---
-// No server storage involved — the record itself lives in the URL.
-export function encodeShareableApp(app) {
-  const json = JSON.stringify(app);
-  return btoa(encodeURIComponent(json));
-}
-
-export function decodeShareableApp(encoded) {
-  try {
-    const json = decodeURIComponent(atob(encoded));
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-}
-
 // --- Client-side daily caps for the shared Anthropic endpoints -------------
 // Soft per-browser caps so a single browser doesn't hammer the shared key. The
 // server-side limiter in api/_ratelimit.js is the real backstop. One generic

@@ -1,7 +1,7 @@
 // src/lib/db.jsx
 //
 // React state layer over store.js. store.js stays the single persistence
-// authority (localStorage shape, import/export, share encoding); this file
+// authority (localStorage shape, import/export); this file
 // just holds the live `db` object in React state, mirrors every change back to
 // localStorage, and exposes generic CRUD + a few cross-collection selectors so
 // pages don't prop-drill or reach into localStorage directly.

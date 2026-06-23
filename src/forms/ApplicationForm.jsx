@@ -6,7 +6,6 @@ import { useDb, useSelectors, normalizeContactLinks } from '../lib/db.jsx';
 import { STAGES, CONTACT_RELATIONS } from '../lib/store.js';
 import { canUseParseToday, recordParseUse, canUseToday, recordUse } from '../lib/store.js';
 import { hasCriteria, checkHardFilters, summarizeFit } from '../lib/fit.js';
-import { buildShareUrl } from '../lib/share.js';
 import { today } from '../lib/dates.js';
 import FitVerdict from '../components/FitVerdict.jsx';
 import InfoDot from '../components/InfoDot.jsx';
@@ -25,7 +24,7 @@ const SENIORITY_SCALE = [
   ['5', 'Principal / Director+ — org-wide leadership']
 ];
 
-// Add/edit an application. Hosts the paste-a-JD flow and the Share button.
+// Add/edit an application. Hosts the paste-a-JD flow and fit scoring.
 // `app` is the record being edited, or null/undefined to create a new one.
 export default function ApplicationForm({ app, onClose }) {
   const { db, add, upsert } = useDb();
@@ -251,12 +250,7 @@ export default function ApplicationForm({ app, onClose }) {
       wide
       footer={
         <>
-          {isEdit && (
-            <>
-              <ShareButton app={app} orgLabel={orgName(app.orgId)} />
-              <DeleteButton app={app} onClose={onClose} />
-            </>
-          )}
+          {isEdit && <DeleteButton app={app} onClose={onClose} />}
           <button
             type="submit"
             form="application-form"
@@ -688,34 +682,6 @@ function FitPanel({ status, fit, error, hasCriteria, canScore, onScore }) {
         </>
       )}
     </div>
-  );
-}
-
-// --- Share button ----------------------------------------------------------
-function ShareButton({ app, orgLabel }) {
-  const [copied, setCopied] = useState(false);
-
-  async function share() {
-    const url = buildShareUrl(app, orgLabel);
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard blocked (e.g. insecure context) — surface the URL to copy.
-      window.prompt('Copy this share link:', url);
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      className="btn btn--sm"
-      onClick={share}
-      title="Copy a read-only link to this job"
-    >
-      {copied ? '✓ Link copied' : '🔗 Share this job'}
-    </button>
   );
 }
 

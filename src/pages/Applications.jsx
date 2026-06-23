@@ -226,7 +226,11 @@ function KanbanView({ onEdit }) {
   return (
     <div className={styles.board}>
       {order.map(stage => {
-        const apps = db.apps.filter(a => a.stage === stage);
+        // Most-recently-touched cards sit at the top of each column, so a job
+        // you just added or just moved here is easy to find (updatedAt desc).
+        const apps = db.apps
+          .filter(a => a.stage === stage)
+          .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
         const isClosed = stage === 'Closed';
         const overClass = dragOver === stage ? styles.columnDragOver : '';
 

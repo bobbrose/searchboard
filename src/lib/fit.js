@@ -74,11 +74,13 @@ export function hasCriteria(profile) {
   );
 }
 
-// Best-effort lowest dollar figure from a salary string. Handles k/m suffixes,
-// commas, and ranges ("$200K – $250K" -> 200000, "$243,000-$256,500" -> 243000).
-// Returns null if nothing parseable. Only ever fed the extracted `salary`
-// field, which is already comp-focused, so false positives are unlikely.
-export function parseSalaryFloor(salary) {
+// Best-effort highest dollar figure from a salary string. Handles k/m suffixes,
+// commas, and ranges ("$200K – $250K" -> 250000, "$243,000-$256,500" -> 256500).
+// We take the TOP of the band so the instant filter only rejects a job when even
+// the high end is below your floor — a band that overlaps your floor still goes
+// to AI scoring. Returns null if nothing parseable. Only ever fed the extracted
+// `salary` field, which is already comp-focused, so false positives are unlikely.
+export function parseSalaryCeiling(salary) {
   if (!salary || typeof salary !== 'string') return null;
   const raw = [...salary.matchAll(/\$?\s*([\d][\d,.]*)\s*([kKmM])?/g)]
     .map(m => ({ n: Number(m[1].replace(/,/g, '')), suffix: (m[2] || '').toLowerCase() }))
@@ -97,7 +99,7 @@ export function parseSalaryFloor(salary) {
     // Ignore stray small numbers that clearly aren't salaries (e.g. "401").
     if (v >= 1000) nums.push(v);
   }
-  return nums.length ? Math.min(...nums) : null;
+  return nums.length ? Math.max(...nums) : null;
 }
 
 const ONSITE_RE = /\b(on-?site|on site|in-office|in office|hybrid)\b/i;
@@ -111,10 +113,10 @@ export function checkHardFilters(profile, { salary, jdText = '', location = '' }
   const hard = profile?.hardFilters || {};
 
   if (hard.compFloor != null) {
-    const floor = parseSalaryFloor(salary);
-    if (floor != null && floor < hard.compFloor) {
+    const ceiling = parseSalaryCeiling(salary);
+    if (ceiling != null && ceiling < hard.compFloor) {
       return pass(
-        `Stated comp (~$${floor.toLocaleString()}) is below your floor of $${hard.compFloor.toLocaleString()}.`
+        `Top of stated comp (~$${ceiling.toLocaleString()}) is below your floor of $${hard.compFloor.toLocaleString()}.`
       );
     }
   }

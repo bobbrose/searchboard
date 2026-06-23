@@ -12,6 +12,7 @@
 // cases the client heuristics let through.
 
 import { isRateLimited, clientIp } from './_ratelimit.js';
+import { logUsage } from './_usage.js';
 
 const MAX_PER_HOUR = 30; // higher than parse: scoring auto-runs per parse + re-scores
 
@@ -169,7 +170,8 @@ export default async function handler(req, res) {
       return;
     }
 
-    res.status(200).json(parsed);
+    const _usage = logUsage('score-fit', data);
+    res.status(200).json({ ...parsed, _usage });
   } catch (err) {
     console.error('Unhandled error in /api/score-fit:', err);
     res.status(500).json({ error: 'Something went wrong while scoring.' });

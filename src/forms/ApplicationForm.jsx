@@ -4,7 +4,7 @@ import Modal from '../components/Modal.jsx';
 import { Field, TextField, TextArea, SelectField, FieldRow } from '../components/Field.jsx';
 import { useDb, useSelectors, normalizeContactLinks } from '../lib/db.jsx';
 import { STAGES, CONTACT_RELATIONS } from '../lib/store.js';
-import { canUseParseToday, recordParseUse, canUseToday, recordUse } from '../lib/store.js';
+import { canUseParseToday, recordParseUse, canUseToday, recordUse, recordTokenUse } from '../lib/store.js';
 import { hasCriteria, checkHardFilters, summarizeFit } from '../lib/fit.js';
 import { today } from '../lib/dates.js';
 import FitVerdict from '../components/FitVerdict.jsx';
@@ -67,7 +67,10 @@ export default function ApplicationForm({ app, onClose }) {
   const [fit, setFit] = useState(app?.fitVerdict || null);
   const [fitStatus, setFitStatus] = useState(app?.fitVerdict ? 'done' : 'idle');
   const [fitError, setFitError] = useState('');
-  const [lastJd, setLastJd] = useState(''); // JD parsed this session, for re-scoring
+  // The fit-relevant JD digest used for scoring. Seeded from the digest stored
+  // on a saved app so re-scoring after a refresh uses the same input that
+  // produced the saved verdict (reproducible), not a thin form-field rebuild.
+  const [lastJd, setLastJd] = useState(app?.fitSource || '');
   // Only a verdict produced this session is re-persisted/logged on save; a
   // loaded one is left untouched (no duplicate timeline entries on a plain edit).
   const [scoredThisSession, setScoredThisSession] = useState(false);
@@ -82,14 +85,16 @@ export default function ApplicationForm({ app, onClose }) {
   // uncommitted job keeps draft semantics — its score commits with "Add job".
   // `scoredThisSession` still drives the submit-time Analysis timeline entry, so
   // history is logged once on save, not on every re-score.
-  function finishScore(scored) {
+  function finishScore(scored, source) {
     setFit(scored);
     setScoredThisSession(true);
     setFitStatus('done');
     if (app?.id) {
       upsert('apps', {
         id: app.id,
-        fitVerdict: { ...scored, scoredAt: new Date().toISOString() }
+        fitVerdict: { ...scored, scoredAt: new Date().toISOString() },
+        // Persist the scored input (the digest) so a later re-score reuses it.
+        ...(source ? { fitSource: source } : {})
       });
     }
   }
@@ -109,7 +114,7 @@ export default function ApplicationForm({ app, onClose }) {
 
     const hard = checkHardFilters(db.profile, { salary, jdText, location });
     if (hard) {
-      finishScore(hard);
+      finishScore(hard, jdText);
       return;
     }
 
@@ -132,7 +137,8 @@ export default function ApplicationForm({ app, onClose }) {
         return;
       }
       recordUse('score');
-      finishScore(data);
+      recordTokenUse('score', data._usage);
+      finishScore(data, jdText);
     } catch {
       setFitStatus('error');
       setFitError('Network error while scoring.');
@@ -217,7 +223,10 @@ export default function ApplicationForm({ app, onClose }) {
       // Keep the flat contactIds in sync as a mirror of the typed links, so
       // readers that haven't migrated (share payload, exports) still resolve.
       contactIds: form.contactLinks.map(l => l.contactId),
-      ...(scored ? { fitVerdict: scored } : {})
+      ...(scored ? { fitVerdict: scored } : {}),
+      // Store the scored input (digest) only with a fresh verdict, so a plain
+      // edit preserves any existing one via the upsert merge.
+      ...(scored && lastJd ? { fitSource: lastJd } : {})
     };
     const saved = upsert('apps', record);
 
@@ -565,11 +574,12 @@ function PasteJdPanel({ onParsed, userState }) {
         return;
       }
       recordParseUse();
-      // _source is the exact text the server parsed (the only way URL mode has
-      // the JD text); fall back to the local textarea for paste mode.
+      recordTokenUse('parse', data._usage);
+      // Score against (and persist) the compact fit digest. Fall back to the
+      // full parsed text, then the local textarea, only if the digest is empty.
       onParsed(data, {
         url: useUrl ? url.trim() : '',
-        jdText: data._source || (useUrl ? '' : text)
+        jdText: data._digest || data._source || (useUrl ? '' : text)
       });
       setStatus('idle');
       setUrl('');

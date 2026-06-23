@@ -188,3 +188,46 @@ export const dailyLimit = bucket => DAILY_LIMITS[bucket].limit;
 // Back-compat thin wrappers for the existing paste-a-JD callers.
 export const canUseParseToday = () => canUseToday('parse');
 export const recordParseUse = () => recordUse('parse');
+
+// --- Per-browser token-usage tally -----------------------------------------
+// A cumulative estimate of tokens this browser has sent through the shared key,
+// per endpoint, for at-a-glance cost awareness. Per-browser only — the true
+// spend across all users lives in the Anthropic Console. The server returns
+// `_usage` ({ input_tokens, output_tokens }) on each successful call.
+const TOKEN_USAGE_KEY = 'searchboard_token_usage_v1';
+
+// claude-sonnet-4-6 list pricing, USD per token (input $3 / output $15 per 1M).
+export const TOKEN_PRICING = { input: 3 / 1e6, output: 15 / 1e6 };
+
+export function recordTokenUse(bucket, usage) {
+  if (!usage) return;
+  let rec;
+  try {
+    rec = JSON.parse(localStorage.getItem(TOKEN_USAGE_KEY)) || {};
+  } catch {
+    rec = {};
+  }
+  const b = rec[bucket] || { calls: 0, input: 0, output: 0 };
+  b.calls += 1;
+  b.input += usage.input_tokens || 0;
+  b.output += usage.output_tokens || 0;
+  rec[bucket] = b;
+  try {
+    localStorage.setItem(TOKEN_USAGE_KEY, JSON.stringify(rec));
+  } catch (e) {
+    console.error('Failed to record token usage', e);
+  }
+}
+
+// Cumulative usage per bucket: { parse: { calls, input, output }, ... }.
+export function tokenUsage() {
+  try {
+    return JSON.parse(localStorage.getItem(TOKEN_USAGE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+export function clearTokenUsage() {
+  localStorage.removeItem(TOKEN_USAGE_KEY);
+}

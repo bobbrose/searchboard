@@ -70,6 +70,49 @@
   color: var(--text-muted);
 }
 
+.subhead {
+  font-size: 14px;
+  margin: var(--space-4) 0 var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.usageTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.usageTable th,
+.usageTable td {
+  text-align: right;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+.usageTable th:first-child,
+.usageTable td:first-child {
+  text-align: left;
+}
+.usageTable th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.usageTotal td {
+  font-weight: 700;
+  border-bottom: none;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent, var(--text));
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+
 .toast {
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius);

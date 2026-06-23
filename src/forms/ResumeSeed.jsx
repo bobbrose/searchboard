@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDb } from '../lib/db.jsx';
-import { canUseToday, recordUse } from '../lib/store.js';
+import { canUseToday, recordUse, recordTokenUse } from '../lib/store.js';
 import { hasCriteria } from '../lib/fit.js';
 import { formatDate } from '../lib/dates.js';
 import styles from './SearchCriteria.module.css';
@@ -46,6 +46,7 @@ export default function ResumeSeed() {
         return;
       }
       recordUse('resume');
+      recordTokenUse('resume', data._usage);
       applyResume(data, setProfile);
       setStatus('done');
       setOpen(false);

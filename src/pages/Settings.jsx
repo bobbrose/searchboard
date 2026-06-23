@@ -9,7 +9,10 @@ import {
   emptyDB,
   canUseParseToday,
   usedToday,
-  dailyLimit
+  dailyLimit,
+  tokenUsage,
+  clearTokenUsage,
+  TOKEN_PRICING
 } from '../lib/store.js';
 import { formatDate } from '../lib/dates.js';
 import styles from './Settings.module.css';
@@ -18,6 +21,11 @@ export default function Settings() {
   const { db, replaceAll } = useDb();
   const fileRef = useRef(null);
   const [msg, setMsg] = useState(null); // { tone, text }
+  const [usage, setUsage] = useState(() => tokenUsage());
+
+  // The token-usage panel is a personal diagnostic, not something other users
+  // need — keep it out of the normal view. Opt in with ?showusage in the URL.
+  const showUsage = new URLSearchParams(window.location.search).has('showusage');
 
   const counts = [
     ['Jobs', db.apps.length],
@@ -88,6 +96,33 @@ export default function Settings() {
   const used = usedToday('parse');
   const limit = dailyLimit('parse');
   const available = canUseParseToday();
+
+  // Per-browser token tally across the shared AI endpoints. The Anthropic
+  // Console is authoritative for true spend; this is a local at-a-glance read.
+  const USAGE_LABELS = {
+    parse: 'Job parsing',
+    score: 'Fit scoring',
+    resume: 'Résumé seeding'
+  };
+  const usageRows = Object.entries(USAGE_LABELS)
+    .map(([bucket, label]) => ({ bucket, label, ...(usage[bucket] || {}) }))
+    .filter(r => r.calls);
+  const totals = usageRows.reduce(
+    (t, r) => ({
+      calls: t.calls + (r.calls || 0),
+      input: t.input + (r.input || 0),
+      output: t.output + (r.output || 0)
+    }),
+    { calls: 0, input: 0, output: 0 }
+  );
+  const estCost =
+    totals.input * TOKEN_PRICING.input + totals.output * TOKEN_PRICING.output;
+  const num = n => (n || 0).toLocaleString();
+
+  function onResetUsage() {
+    clearTokenUsage();
+    setUsage({});
+  }
 
   return (
     <>
@@ -165,6 +200,55 @@ export default function Settings() {
           <p className={styles.note}>
             Your allowance resets tomorrow. You can still add jobs manually any time.
           </p>
+        )}
+
+        {showUsage && (
+          <>
+            <h3 className={styles.subhead}>Token usage from this browser</h3>
+            {usageRows.length === 0 ? (
+              <p className={styles.note}>
+                No AI calls recorded yet. Counts appear here once you parse a
+                job, score a fit, or seed from a résumé.
+              </p>
+            ) : (
+              <>
+                <table className={styles.usageTable}>
+                  <thead>
+                    <tr>
+                      <th>Feature</th>
+                      <th>Calls</th>
+                      <th>Input</th>
+                      <th>Output</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usageRows.map(r => (
+                      <tr key={r.bucket}>
+                        <td>{r.label}</td>
+                        <td>{num(r.calls)}</td>
+                        <td>{num(r.input)}</td>
+                        <td>{num(r.output)}</td>
+                      </tr>
+                    ))}
+                    <tr className={styles.usageTotal}>
+                      <td>Total</td>
+                      <td>{num(totals.calls)}</td>
+                      <td>{num(totals.input)}</td>
+                      <td>{num(totals.output)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p className={styles.note}>
+                  Roughly <strong>${estCost.toFixed(2)}</strong> at list pricing
+                  — a local estimate only. The Anthropic Console is the source of
+                  truth for spend across everyone using the shared key.{' '}
+                  <button className={styles.linkBtn} onClick={onResetUsage}>
+                    Reset counts
+                  </button>
+                </p>
+              </>
+            )}
+          </>
         )}
       </section>
     </>

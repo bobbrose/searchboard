@@ -24,9 +24,10 @@ Built and deployed. The core is in daily use: the Jobs board (kanban + list), th
   - `api/parse.js` — extract structured fields from a pasted JD (or resolve a Greenhouse/Lever URL via the allowlisted resolver in `api/_ats.js`; the server never fetches arbitrary user URLs).
   - `api/score-fit.js` — personalized fit scoring from your criteria + a JD.
   - `api/parse-resume.js` — turn a pasted résumé into seed values for your Fit Criteria.
-  - Shared helpers: `api/_ratelimit.js` (best-effort per-IP cap) and `api/_ats.js`.
+  - Shared helpers: `api/_ratelimit.js` (best-effort per-IP cap), `api/_ats.js`, and `api/_usage.js` (logs per-call token usage and returns a compact `_usage` to the client).
 - **Rate limiting**: a daily cap per browser for each task (`parse` 15, `score` 25, `resume` 5 — see `DAILY_LIMITS` in `src/lib/store.js`), backed by the server-side per-IP limiter.
 - **Storage**: no database, no accounts. All tracking data lives in the browser's localStorage and in the JSON file you export/import. The AI endpoints only ever see pasted text (JD or résumé) transiently — never stored, never logged.
+- **Token usage panel**: a per-browser tally of tokens sent through the shared key (cumulative input/output per task, with a rough cost estimate). It's a personal diagnostic, hidden by default — append `?showusage` to the Settings URL (`/settings?showusage`) to reveal it. The Anthropic Console remains authoritative for real spend.
 - **Share-a-job**: a single job record is base64-encoded into a URL query parameter (`encodeShareableApp` / `decodeShareableApp` in `src/lib/store.js`) — no server storage involved.
 
 ## Local development

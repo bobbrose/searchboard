@@ -8,6 +8,7 @@
 // model as the other endpoints; its own rate-limit bucket.
 
 import { isRateLimited, clientIp } from './_ratelimit.js';
+import { logUsage } from './_usage.js';
 
 const MAX_PER_HOUR = 30; // résumé seeding is a once-in-a-while action
 
@@ -84,7 +85,8 @@ export default async function handler(req, res) {
       return;
     }
 
-    res.status(200).json(parsed);
+    const _usage = logUsage('parse-resume', data);
+    res.status(200).json({ ...parsed, _usage });
   } catch (err) {
     console.error('Unhandled error in /api/parse-resume:', err);
     res.status(500).json({ error: 'Something went wrong reading the résumé.' });

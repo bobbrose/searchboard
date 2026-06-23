@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import styles from './Layout.module.css';
 
 // Secondary destinations live behind the hamburger; Applications is the home
@@ -70,6 +71,10 @@ export default function Layout() {
       <main className={styles.main}>
         <Outlet />
       </main>
+
+      {/* Mounts once for the whole app; collects anonymous page-view metrics
+          (no PII). Active only on the Vercel deployment with Analytics enabled. */}
+      <Analytics />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import TagInput from '../components/TagInput.jsx';
 import ResumeSeed from './ResumeSeed.jsx';
 import { useDb } from '../lib/db.jsx';
@@ -189,13 +190,9 @@ export default function SearchCriteria({ embedded = false }) {
         label="Differentiators"
         hint="What makes you a strong candidate — one per line. Doubles as cover-letter hook material."
       >
-        <textarea
-          className={styles.area}
-          rows={3}
-          value={(p.differentiators || []).join('\n')}
-          onChange={e =>
-            setProfile({ differentiators: splitLines(e.target.value) })
-          }
+        <LinesField
+          value={p.differentiators}
+          onChange={v => setProfile({ differentiators: v })}
           placeholder={'e.g. Grew revenue 40% in two years\nBuilt and led a 20-person team'}
         />
       </Group>
@@ -204,13 +201,9 @@ export default function SearchCriteria({ embedded = false }) {
         label="Red-flag patterns"
         hint="Patterns to watch for in JD language — one per line. Not keyword matches."
       >
-        <textarea
-          className={styles.area}
-          rows={3}
-          value={(p.redFlagPatterns || []).join('\n')}
-          onChange={e =>
-            setProfile({ redFlagPatterns: splitLines(e.target.value) })
-          }
+        <LinesField
+          value={p.redFlagPatterns}
+          onChange={v => setProfile({ redFlagPatterns: v })}
           placeholder={'e.g. Vague scope or shifting priorities\nTitle inflation without real authority'}
         />
       </Group>
@@ -240,6 +233,33 @@ function splitLines(text) {
     .split('\n')
     .map(s => s.trim())
     .filter(Boolean);
+}
+
+// A textarea bound to an array of lines. Crucially it keeps the *raw* text in
+// local state while typing — cleaning into the array (trim + drop blanks) only
+// for storage — so in-progress whitespace and newlines aren't stripped on every
+// keystroke. Resyncs if the external array changes (e.g. a résumé re-seed).
+function LinesField({ value, onChange, ...props }) {
+  const [raw, setRaw] = useState(() => (value || []).join('\n'));
+
+  useEffect(() => {
+    const external = (value || []).join('\n');
+    if (splitLines(raw).join('\n') !== external) setRaw(external);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  return (
+    <textarea
+      {...props}
+      className={styles.area}
+      rows={3}
+      value={raw}
+      onChange={e => {
+        setRaw(e.target.value);
+        onChange(splitLines(e.target.value));
+      }}
+    />
+  );
 }
 
 function Group({ label, hint, children }) {

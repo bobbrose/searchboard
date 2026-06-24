@@ -6,6 +6,7 @@ import Orgs from './pages/Orgs.jsx';
 import Contacts from './pages/Contacts.jsx';
 import Criteria from './pages/Criteria.jsx';
 import Settings from './pages/Settings.jsx';
+import About from './pages/About.jsx';
 
 // Root: data provider wraps the whole tree, and the router renders the nav-chrome
 // app. Applications is the home screen; everything else is reached from the
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="contacts" element={<Contacts />} />
           <Route path="criteria" element={<Criteria />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="about" element={<About />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

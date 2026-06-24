@@ -9,7 +9,8 @@ const NAV = [
   { to: '/orgs', label: 'Orgs', icon: '◳' },
   { to: '/contacts', label: 'Contacts', icon: '☺' },
   { to: '/criteria', label: 'Fit Criteria', icon: '◎' },
-  { to: '/settings', label: 'Settings', icon: '⚙' }
+  { to: '/settings', label: 'Settings', icon: '⚙' },
+  { to: '/about', label: 'About', icon: 'ⓘ' }
 ];
 
 export default function Layout() {

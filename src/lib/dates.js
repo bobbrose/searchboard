@@ -6,10 +6,22 @@
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+// Parse to a Date, treating a bare 'YYYY-MM-DD' as LOCAL midnight. (Plain
+// `new Date('YYYY-MM-DD')` reads it as UTC, which shifts the day for anyone
+// behind UTC — e.g. a date due today reads as yesterday.)
+function toDate(value) {
+  if (value instanceof Date) return new Date(value);
+  if (typeof value === 'string') {
+    const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
+  return new Date(value);
+}
+
 // Midnight-local for a date-only string ('YYYY-MM-DD') or any Date-parseable
 // value. Comparing at day granularity avoids "overdue by 3 hours" surprises.
 function startOfDay(value) {
-  const d = value instanceof Date ? new Date(value) : new Date(value);
+  const d = toDate(value);
   if (Number.isNaN(d.getTime())) return null;
   d.setHours(0, 0, 0, 0);
   return d;
@@ -67,7 +79,7 @@ export function daysFromToday(n) {
 // 'Jun 19, 2026' style. Empty string in, empty string out.
 export function formatDate(value) {
   if (!value) return '';
-  const d = new Date(value);
+  const d = toDate(value);
   if (Number.isNaN(d.getTime())) return '';
   return d.toLocaleDateString(undefined, {
     year: 'numeric',

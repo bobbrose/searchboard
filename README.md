@@ -51,3 +51,7 @@ Connected to Vercel. Push to `main` to deploy. Set `ANTHROPIC_API_KEY` in the Ve
 ## Repo
 
 https://github.com/bobbrose/searchboard
+
+## License
+
+MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Bob Rose (https://bobbrose.com).

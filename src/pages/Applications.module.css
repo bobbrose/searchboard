@@ -7,6 +7,38 @@
   display: none;
 }
 
+/* Keyword search bar — sits above the board/list */
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.searchInput {
+  flex: 1;
+  max-width: 380px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 14px;
+}
+.searchInput:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: var(--accent);
+}
+.searchCount {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.noResults {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-muted);
+}
+
 /* View toggle */
 .toggle {
   display: inline-flex;

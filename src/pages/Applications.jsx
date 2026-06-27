@@ -22,11 +22,23 @@ const STAGE_TONE = {
 
 export default function Applications() {
   const { db, replaceAll } = useDb();
+  const { orgName, contactLinksForApp } = useSelectors();
   const [view, setView] = useState('kanban'); // 'kanban' | 'list'
   const [editing, setEditing] = useState(null); // app record, {} for new, or null
+  const [query, setQuery] = useState('');
   const fileRef = useRef(null);
 
   const hasApps = db.apps.length > 0;
+
+  // Keyword filter: every whitespace-separated term must appear somewhere in a
+  // job's searchable text (title, org, location, stage, comp, notes, contacts).
+  const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const visibleApps = terms.length
+    ? db.apps.filter(a => {
+        const hay = appHaystack(a, orgName, contactLinksForApp);
+        return terms.every(t => hay.includes(t));
+      })
+    : db.apps;
 
   // Merge-import: newer records win, nothing is erased. (Settings still offers a
   // full replace-import for the rare "start over from this file" case.)
@@ -162,10 +174,35 @@ export default function Applications() {
             }
           />
         </>
-      ) : view === 'kanban' ? (
-        <KanbanView onEdit={setEditing} />
       ) : (
-        <ListView onEdit={setEditing} />
+        <>
+          <div className={styles.searchBar}>
+            <input
+              type="search"
+              className={styles.searchInput}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search jobs by title, org, location, contact…"
+              aria-label="Search jobs"
+            />
+            {terms.length > 0 && (
+              <span className={styles.searchCount}>
+                {visibleApps.length} match{visibleApps.length === 1 ? '' : 'es'}
+              </span>
+            )}
+          </div>
+          {terms.length > 0 && visibleApps.length === 0 ? (
+            <p className={styles.noResults}>No jobs match “{query.trim()}”.</p>
+          ) : view === 'kanban' ? (
+            <KanbanView
+              apps={visibleApps}
+              searching={terms.length > 0}
+              onEdit={setEditing}
+            />
+          ) : (
+            <ListView apps={visibleApps} onEdit={setEditing} />
+          )}
+        </>
       )}
 
       {editing && (
@@ -179,7 +216,7 @@ export default function Applications() {
 }
 
 // --- Kanban ----------------------------------------------------------------
-function KanbanView({ onEdit }) {
+function KanbanView({ apps: allApps, searching, onEdit }) {
   const { db, update } = useDb();
   // Closed jobs don't need pipeline prominence: pin the column to the far left
   // and collapse it by default so it sits out of the way until you want it.
@@ -229,13 +266,14 @@ function KanbanView({ onEdit }) {
       {order.map(stage => {
         // Most-recently-touched cards sit at the top of each column, so a job
         // you just added or just moved here is easy to find (updatedAt desc).
-        const apps = db.apps
+        const apps = allApps
           .filter(a => a.stage === stage)
           .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
         const isClosed = stage === 'Closed';
         const overClass = dragOver === stage ? styles.columnDragOver : '';
 
-        if (isClosed && closedCollapsed) {
+        // While searching, keep Closed expanded so matches there are visible.
+        if (isClosed && closedCollapsed && !searching) {
           return (
             <section
               key={stage}
@@ -394,12 +432,12 @@ function AppCard({ app, onEdit, onMove, dragging, onDragStart, onDragEnd }) {
 }
 
 // --- List ------------------------------------------------------------------
-function ListView({ onEdit }) {
-  const { db, remove } = useDb();
+function ListView({ apps, onEdit }) {
+  const { remove } = useDb();
   const { orgName, contactLinksForApp } = useSelectors();
   const [sort, setSort] = useState({ key: 'updatedAt', dir: 'desc' });
 
-  const sorted = [...db.apps].sort((a, b) => {
+  const sorted = [...apps].sort((a, b) => {
     const dir = sort.dir === 'asc' ? 1 : -1;
     const va = sortValue(a, sort.key, orgName);
     const vb = sortValue(b, sort.key, orgName);
@@ -477,6 +515,23 @@ function ListView({ onEdit }) {
       </table>
     </div>
   );
+}
+
+// All the text a keyword search should match against, lowercased into one blob.
+function appHaystack(app, orgName, contactLinksForApp) {
+  return [
+    app.title,
+    orgName(app.orgId),
+    app.location,
+    app.stage,
+    app.salary,
+    app.fitNotes,
+    app.closeReason,
+    ...contactLinksForApp(app).map(l => l.contact.name)
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
 }
 
 const ACTION_RANK = { apply: 3, wait: 2, pass: 1 };

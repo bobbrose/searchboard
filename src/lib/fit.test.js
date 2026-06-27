@@ -3,7 +3,9 @@ import {
   parseSalaryCeiling,
   hasCriteria,
   checkHardFilters,
-  summarizeFit
+  summarizeFit,
+  appendCalibration,
+  CALIBRATION_MAX
 } from './fit.js';
 
 describe('parseSalaryCeiling', () => {
@@ -130,5 +132,33 @@ describe('summarizeFit', () => {
     expect(out).toContain('Cover-letter hook: Hello');
     // Absent fields are omitted.
     expect(out).not.toContain('Domain fit:');
+  });
+});
+
+describe('appendCalibration', () => {
+  const ex = n => ({ id: String(n), digest: `role ${n}`, correct: { fit: 'close', action: 'apply' } });
+
+  it('prepends newest-first', () => {
+    const out = appendCalibration([ex(1)], ex(2));
+    expect(out.map(e => e.id)).toEqual(['2', '1']);
+  });
+
+  it('caps at CALIBRATION_MAX, dropping the oldest', () => {
+    let list = [];
+    for (let i = 1; i <= CALIBRATION_MAX + 3; i++) list = appendCalibration(list, ex(i));
+    expect(list).toHaveLength(CALIBRATION_MAX);
+    // newest kept, oldest dropped
+    expect(list[0].id).toBe(String(CALIBRATION_MAX + 3));
+    expect(list.some(e => e.id === '1')).toBe(false);
+  });
+
+  it('treats a missing list as empty', () => {
+    expect(appendCalibration(undefined, ex(1))).toEqual([ex(1)]);
+  });
+
+  it('does not mutate the input list', () => {
+    const orig = [ex(1)];
+    appendCalibration(orig, ex(2));
+    expect(orig).toEqual([ex(1)]);
   });
 });

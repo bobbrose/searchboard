@@ -18,8 +18,14 @@ const MAX_PER_HOUR = 30; // higher than parse: scoring auto-runs per parse + re-
 
 const SYSTEM_PROMPT = `You measure how closely a single job posting matches the reader's stated criteria, and recommend an action. The reader is the candidate; address them directly in the second person ("you", "your"). Respond with ONLY valid JSON — no markdown, no code fences, no prose outside the object. The schema is exactly:
 {
-  "fit": "miss" | "partial" | "close",
+  "fit": "miss" | "partial" | "close" | "perfect",
   "action": "apply" | "wait" | "pass",
+  "dimensions": {
+    "role": "match" | "partial" | "gap",
+    "domain": "match" | "partial" | "gap",
+    "comp": "match" | "partial" | "gap" | "unknown",
+    "stack": "match" | "partial" | "gap"
+  },
   "reasoning": {
     "roleFit": string,
     "domainFit": string,
@@ -27,15 +33,23 @@ const SYSTEM_PROMPT = `You measure how closely a single job posting matches the 
     "stackAlignment": string,
     "redFlags": string
   },
-  "coverLetterHook": string
+  "coverLetterHook": string,
+  "roleDigest": string
 }
 
 PRIVACY — these verdicts are meant to be shareable. Never write the candidate's name or any personally identifying detail (name, email, phone, employer names from their background) anywhere in the output. Always say "you"/"your", never a name or "the candidate". Even if a name appears in the criteria or differentiators, do not echo it.
 
-"fit" measures ONLY how closely the role matches your stated criteria and background. It is NOT a judgment of your ability or of the role's quality — only the degree of GENUINE overlap with what you want and what you've done. Be calibrated and skeptical, not charitable: most roles a person encounters are "partial" or "miss". Reserve "close" for genuine matches.
-- "close": strong alignment on the things that matter most — role function/track, level, and domain — with no fundamental mismatch, and your hard criteria satisfied.
-- "partial": real overlap on some dimensions but a clear gap or mismatch on others; genuinely mixed.
-- "miss": a fundamental mismatch on role function/track (e.g. people-management vs. individual-contributor/tech-lead), on industry/domain, or on level — OR it conflicts with a stated criterion. A miss may note any superficial overlap, but surface overlap does NOT lift a fundamental mismatch up to "partial".
+First fill in "dimensions" — an independent, factual status for each scored dimension. Be strict; "match" means a genuine positive match, not merely "not disqualifying":
+- role: does the role function/track (individual-contributor vs. tech-lead vs. people-management) AND level genuinely match? "gap" for a fundamental mismatch; "partial" for the right track but off-level (or vice versa).
+- domain: is the industry/product domain a target or part of your background, and not excluded? "gap" for a domain absent from your background and targets; "partial" for adjacent.
+- comp: "match" ONLY if compensation is STATED and clears your floor. "gap" if stated and below floor. "partial" if a band straddles your floor. "unknown" if comp is not stated — never assume.
+- stack: do the required skills/scope align with your background and preferences? "gap" / "partial" / "match" accordingly.
+
+Then set "fit" by DERIVING it from those dimensions — do not free-float it. It measures ONLY the degree of GENUINE overlap with what you want and what you've done, not your ability or the role's quality. Be calibrated and skeptical, not charitable: most roles are "partial" or "miss".
+- "perfect": EVERY dimension is "match" (role, domain, stack all "match" AND comp "match" — i.e. stated and clearing your floor), your stated soft preferences are also satisfied, and there are no red flags. Rare by design; if comp is "unknown" it CANNOT be "perfect".
+- "close": strong alignment on the things that matter most — role function/track, level, and domain ("match" on role and domain) — with no fundamental mismatch and your hard criteria satisfied, but short of perfect (e.g. comp "unknown", a "partial" on some dimension, or a soft preference unmet).
+- "partial": real overlap on some dimensions but a clear gap or mismatch on others ("gap" on role or domain while another is "match"); genuinely mixed.
+- "miss": a fundamental mismatch on role function/track (e.g. people-management vs. individual-contributor/tech-lead), on industry/domain, or on level ("gap" on role or domain) — OR it conflicts with a stated criterion. A miss may note any superficial overlap, but surface overlap does NOT lift a fundamental mismatch up to "partial".
 
 Judging rules — apply these strictly:
 - Do NOT give partial credit for superficial keyword overlap (a shared buzzword like "AI", or a shared programming language or tool). Judge the substance: is this the same KIND of role, in a domain you target or have worked in, at your level?
@@ -59,7 +73,9 @@ Work through this five-stage framework, letting earlier stages weigh most:
 
 Each reasoning field is AT MOST 2 sentences — tight, plain, and factual, like a trusted recruiter's honest read. Reference your actual criteria; don't restate the JD. If the profile lacks data for a stage, say what's missing in a few words rather than inventing a judgment.
 
-coverLetterHook: one or two sentences you could adapt as an opening hook, drawing on your differentiators where they connect to this role. Empty string if action is "pass".`;
+coverLetterHook: one or two sentences you could adapt as an opening hook, drawing on your differentiators where they connect to this role. Empty string if action is "pass".
+
+roleDigest: ONE compact line summarizing the role for future calibration — level, track (IC / tech-lead / people-manager), domain/industry, comp if stated, and key stack. No PII, no employer name. e.g. "Senior IC backend, fintech, $200–240k remote, Go/AWS". This is stored to help calibrate later scores; keep it short and factual.`;
 
 // Turn the profile into a compact, labeled block for the user message. Only
 // fields that carry signal; skip empties to keep the payload (and cost) small.
@@ -103,6 +119,21 @@ function profileToText(p = {}) {
   return lines.join('\n');
 }
 
+// Build a few-shot calibration block from the reader's past corrections. These
+// are the strongest signal for how harsh/generous to be, because they are the
+// reader's own labeled judgments — weight them heavily. Empty string if none.
+function calibrationToText(list) {
+  const items = (list || []).filter(c => c && c.digest && c.correct?.fit);
+  if (!items.length) return '';
+  const lines = items.slice(0, 5).map(c => {
+    const g = c.given?.fit ? `${c.given.fit}/${c.given.action}` : 'an earlier read';
+    const v = `${c.correct.fit}/${c.correct.action}`;
+    const note = c.note ? ` — your reason: ${c.note}` : '';
+    return `- ${c.digest} | a prior verdict said ${g}, but you corrected it to ${v}${note}`;
+  });
+  return lines.join('\n');
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -131,7 +162,12 @@ export default async function handler(req, res) {
     return;
   }
 
-  const userMessage = `CANDIDATE CRITERIA:\n${profileText}\n\nJOB POSTING:\n${jdText.slice(0, 8000)}`;
+  const calibrationText = calibrationToText(profile?.fitCalibration);
+  const calibrationBlock = calibrationText
+    ? `\n\nCALIBRATION — how you have corrected past verdicts. Treat these as the authoritative bar for how strict to be, and apply the same standard to the job below:\n${calibrationText}`
+    : '';
+
+  const userMessage = `CANDIDATE CRITERIA:\n${profileText}${calibrationBlock}\n\nJOB POSTING:\n${jdText.slice(0, 8000)}`;
 
   try {
     const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -144,6 +180,9 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 700,
+        // Deterministic scoring: the same JD + criteria should yield the same
+        // verdict run-to-run. Fit is a measurement, not a brainstorm.
+        temperature: 0,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userMessage }]
       })

@@ -3,9 +3,16 @@ import { Link } from 'react-router-dom';
 import Modal from '../components/Modal.jsx';
 import { Field, TextField, TextArea, SelectField, FieldRow } from '../components/Field.jsx';
 import { useDb, useSelectors, normalizeContactLinks } from '../lib/db.jsx';
-import { STAGES, CONTACT_RELATIONS } from '../lib/store.js';
+import { STAGES, CONTACT_RELATIONS, uid } from '../lib/store.js';
 import { canUseParseToday, recordParseUse, canUseToday, recordUse, recordTokenUse } from '../lib/store.js';
-import { hasCriteria, checkHardFilters, summarizeFit } from '../lib/fit.js';
+import {
+  hasCriteria,
+  checkHardFilters,
+  summarizeFit,
+  appendCalibration,
+  FIT_LEVELS,
+  ACTION_LEVELS
+} from '../lib/fit.js';
 import { findWebsite, findOrg, withProtocol, displayUrl } from '../lib/website.js';
 import { today } from '../lib/dates.js';
 import FitVerdict from '../components/FitVerdict.jsx';
@@ -28,7 +35,7 @@ const SENIORITY_SCALE = [
 // Add/edit an application. Hosts the paste-a-JD flow and fit scoring.
 // `app` is the record being edited, or null/undefined to create a new one.
 export default function ApplicationForm({ app, onClose }) {
-  const { db, add, upsert } = useDb();
+  const { db, add, upsert, setProfile } = useDb();
   const { orgName } = useSelectors();
   const isEdit = !!app?.id;
 
@@ -227,6 +234,47 @@ export default function ApplicationForm({ app, onClose }) {
       .join('\n');
   }
 
+  // Record a correction to a verdict so future scores match the user's bar.
+  // The role digest comes from the verdict (roleDigest); fall back to the
+  // job's own fields for older verdicts that predate it. PII-light by design.
+  function calibrate({ given, correct, note }) {
+    const digest =
+      fit?.roleDigest ||
+      [form.title, form.orgId && orgName(form.orgId), form.location]
+        .filter(Boolean)
+        .join(', ') ||
+      'this role';
+    const example = {
+      id: uid(),
+      digest,
+      given,
+      correct,
+      note: (note || '').trim(),
+      at: new Date().toISOString()
+    };
+    // 1) Store the correction so FUTURE similar jobs match your bar.
+    setProfile({
+      fitCalibration: appendCalibration(db.profile?.fitCalibration, example)
+    });
+    // 2) Your judgment wins for THIS job: update the shown verdict to the
+    // corrected fit/action and persist it (immediately for a saved job; a new
+    // job commits it on "Add"). `userAdjusted` marks it as your manual call.
+    const adjusted = {
+      ...fit,
+      fit: correct.fit,
+      action: correct.action,
+      userAdjusted: true
+    };
+    setFit(adjusted);
+    setScoredThisSession(true);
+    if (app?.id) {
+      upsert('apps', {
+        id: app.id,
+        fitVerdict: { ...adjusted, scoredAt: new Date().toISOString() }
+      });
+    }
+  }
+
   // Something to score from: a parsed JD this session, or saved role detail.
   const canScore = !!(lastJd || form.title || form.fitNotes);
 
@@ -358,6 +406,7 @@ export default function ApplicationForm({ app, onClose }) {
         hasCriteria={profileHasCriteria}
         canScore={canScore}
         onScore={scoreCurrent}
+        onCalibrate={calibrate}
       />
 
       <form id="application-form" onSubmit={handleSubmit}>
@@ -714,7 +763,7 @@ function PasteJdPanel({ onParsed, userState }) {
 // Shows the verdict (auto-run after a parse, loaded from a prior score, or run
 // on demand). The on-demand "Score" button works for any role and is the way to
 // re-score after editing your Fit Criteria. Persisted on the app on submit.
-function FitPanel({ status, fit, error, hasCriteria, canScore, onScore }) {
+function FitPanel({ status, fit, error, hasCriteria, canScore, onScore, onCalibrate }) {
   // No criteria yet — point to setup. (Covers both initial idle and a scoring
   // attempt that found nothing to score against.)
   if (!hasCriteria && (status === 'idle' || status === 'nocriteria')) {
@@ -765,11 +814,107 @@ function FitPanel({ status, fit, error, hasCriteria, canScore, onScore }) {
       {status === 'done' && fit && (
         <>
           <FitVerdict fit={fit} />
+          {/* AI verdicts can be calibrated; instant hard-filter verdicts can't
+              (there's no judgment to correct). */}
+          {!fit._hardFilter && onCalibrate && (
+            <CalibrationControl
+              key={`${fit.fit}-${fit.action}-${fit.roleDigest || ''}`}
+              given={fit}
+              onSave={onCalibrate}
+            />
+          )}
           <Link to="/criteria" className={styles.fitRefine}>
             Adjust your Fit Criteria →
           </Link>
         </>
       )}
+    </div>
+  );
+}
+
+// Inline "was this right?" control. Lets the user set the fit/action this role
+// SHOULD have gotten; the correction is stored and fed back as a few-shot anchor
+// so future scores match their bar. Defaults to the given verdict (so "about
+// right" is one click → Save).
+function CalibrationControl({ given, onSave }) {
+  const [open, setOpen] = useState(false);
+  const [fitVal, setFitVal] = useState(given.fit);
+  const [actionVal, setActionVal] = useState(given.action);
+  const [note, setNote] = useState('');
+
+  // Persistent "you set this" state, driven by the saved verdict (not ephemeral
+  // local state) so it survives reopening the job. Offers a Change link to redo.
+  if (given.userAdjusted && !open) {
+    return (
+      <p className={styles.calibSaved}>
+        ✓ You set this to “{FIT_LEVELS[given.fit]?.label || given.fit}” — future
+        scores will match your bar.{' '}
+        <button
+          type="button"
+          className={styles.calibToggle}
+          onClick={() => setOpen(true)}
+        >
+          Change
+        </button>
+      </p>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        className={styles.calibToggle}
+        onClick={() => setOpen(true)}
+      >
+        Was this verdict right?
+      </button>
+    );
+  }
+
+  return (
+    <div className={styles.calib}>
+      <span className={styles.calibLabel}>This verdict should be:</span>
+      <div className={styles.calibRow}>
+        <select value={fitVal} onChange={e => setFitVal(e.target.value)}>
+          {Object.entries(FIT_LEVELS).map(([v, o]) => (
+            <option key={v} value={v}>{o.label}</option>
+          ))}
+        </select>
+        <select value={actionVal} onChange={e => setActionVal(e.target.value)}>
+          {Object.entries(ACTION_LEVELS).map(([v, o]) => (
+            <option key={v} value={v}>{o.label}</option>
+          ))}
+        </select>
+      </div>
+      <input
+        className={styles.calibNote}
+        value={note}
+        onChange={e => setNote(e.target.value)}
+        placeholder="Why? (optional, e.g. “fintech is fine for me”)"
+      />
+      <div className={styles.calibActions}>
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          onClick={() => setOpen(false)}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="btn btn--primary btn--sm"
+          onClick={() =>
+            onSave({
+              given: { fit: given.fit, action: given.action },
+              correct: { fit: fitVal, action: actionVal },
+              note
+            })
+          }
+        >
+          Save calibration
+        </button>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import TagInput from '../components/TagInput.jsx';
 import ResumeSeed from './ResumeSeed.jsx';
 import { useDb } from '../lib/db.jsx';
-import { COMPANY_DIMENSIONS, PRODUCT_INFRA_OPTIONS } from '../lib/fit.js';
+import { COMPANY_DIMENSIONS, PRODUCT_INFRA_OPTIONS, FIT_LEVELS } from '../lib/fit.js';
 import styles from './SearchCriteria.module.css';
 
 // The living criteria profile — source of truth, edited any time in Settings.
@@ -207,6 +207,38 @@ export default function SearchCriteria({ embedded = false }) {
           placeholder={'e.g. Vague scope or shifting priorities\nTitle inflation without real authority'}
         />
       </Group>
+
+      {p.fitCalibration?.length > 0 && (
+        <Group
+          label="Calibration"
+          hint="Corrections you've made to fit verdicts. The scorer uses your most recent few to match your bar. Remove any that no longer reflect how you judge."
+        >
+          <ul className={styles.calibList}>
+            {p.fitCalibration.map(c => (
+              <li key={c.id} className={styles.calibItem}>
+                <span className={styles.calibText}>
+                  <strong>{c.digest}</strong> → you set{' '}
+                  {FIT_LEVELS[c.correct?.fit]?.label || c.correct?.fit}
+                  {c.note ? ` — ${c.note}` : ''}
+                </span>
+                <button
+                  type="button"
+                  className={styles.calibRemove}
+                  onClick={() =>
+                    setProfile({
+                      fitCalibration: p.fitCalibration.filter(x => x.id !== c.id)
+                    })
+                  }
+                  title="Remove this calibration"
+                  aria-label="Remove this calibration"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Group>
+      )}
     </>
   );
 

@@ -45,15 +45,38 @@ export const PRODUCT_INFRA_OPTIONS = [
 //   fit    — how closely the role matches the candidate's criteria (descriptive)
 //   action — what to do, driven by fit but able to override it (prescriptive)
 export const FIT_LEVELS = {
-  close: { label: 'Close fit', tone: 'ok' },
-  partial: { label: 'Partial fit', tone: 'warm' },
-  miss: { label: 'Miss', tone: 'stale' }
+  perfect: { label: 'Perfect fit', tone: 'perfect' }, // solid green — every dimension matches
+  close: { label: 'Close fit', tone: 'ok' }, // light green
+  partial: { label: 'Partial fit', tone: 'partial' }, // light red
+  miss: { label: 'Miss', tone: 'missStrong' } // dark red
+};
+
+// Per-dimension rubric status → label + Badge tone. The verdict's overall `fit`
+// is derived from these (perfect = all match + comp stated above floor), which
+// keeps the top rank a checkable judgment rather than a vibe.
+export const DIM_STATUS = {
+  match: { label: 'Match', tone: 'ok' },
+  partial: { label: 'Partial', tone: 'warm' },
+  gap: { label: 'Gap', tone: 'stale' },
+  unknown: { label: 'Unknown', tone: 'neutral' }
 };
 export const ACTION_LEVELS = {
   apply: { label: 'Apply', tone: 'accent' },
   wait: { label: 'Wait', tone: 'warm' },
   pass: { label: 'Pass', tone: 'stale' }
 };
+
+// --- Calibration --------------------------------------------------------
+// The scorer learns YOUR bar from corrections you make to past verdicts. Each
+// example is { id, digest, given:{fit,action}, correct:{fit,action}, note, at }
+// and lives in profile.fitCalibration. We keep only the most recent few so the
+// few-shot block stays small and cheap, and recent corrections win.
+export const CALIBRATION_MAX = 5;
+
+// Append a calibration example, newest-first, capped at `max`. Pure.
+export function appendCalibration(list, example, max = CALIBRATION_MAX) {
+  return [example, ...(list || [])].slice(0, max);
+}
 
 // True if the profile carries enough signal to score against.
 export function hasCriteria(profile) {

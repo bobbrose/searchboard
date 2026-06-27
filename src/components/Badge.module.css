@@ -38,6 +38,24 @@
   color: var(--danger);
   border-color: #fecaca;
 }
+/* Partial fit — still potentially worth applying, so a neutral tan, not red. */
+.partial {
+  background: #f3ecdd;
+  color: #8a6a3b;
+  border-color: #e4d3b3;
+}
+/* Solid green — reserved for a "perfect" fit (every dimension matches). */
+.perfect {
+  background: var(--ok);
+  color: #fff;
+  border-color: var(--ok);
+}
+/* Solid dark red — a "miss" (fundamental mismatch). */
+.missStrong {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
 .done {
   background: var(--surface-2);
   color: var(--text-faint);

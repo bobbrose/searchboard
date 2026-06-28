@@ -4,9 +4,11 @@ import PageHeader from '../components/PageHeader.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import Badge from '../components/Badge.jsx';
 import { FitBadges } from '../components/FitVerdict.jsx';
+import Modal from '../components/Modal.jsx';
+import { SelectField, TextArea } from '../components/Field.jsx';
 import ApplicationForm from '../forms/ApplicationForm.jsx';
 import { useDb, useSelectors } from '../lib/db.jsx';
-import { STAGES, exportAsFile, importFromFile, mergeDB } from '../lib/store.js';
+import { STAGES, CLOSE_REASONS, exportAsFile, importFromFile, mergeDB } from '../lib/store.js';
 import { hasCriteria } from '../lib/fit.js';
 import { formatDate, today } from '../lib/dates.js';
 import { withProtocol, displayUrl } from '../lib/website.js';
@@ -225,11 +227,18 @@ function KanbanView({ apps: allApps, searching, onEdit }) {
   // is the stage currently under the cursor (for the drop-target highlight).
   const [dragId, setDragId] = useState(null);
   const [dragOver, setDragOver] = useState(null);
+  // Job awaiting a close reason: moving to "Closed" opens a dialog first.
+  const [closing, setClosing] = useState(null);
   const order = ['Closed', ...STAGES.filter(s => s !== 'Closed')];
 
   // The one place a stage change happens, whether via the dropdown or a drop.
   function moveTo(app, stage) {
     if (!app || app.stage === stage) return;
+    // Closing requires a reason — defer the move until the dialog is confirmed.
+    if (stage === 'Closed') {
+      setClosing(app);
+      return;
+    }
     update('apps', app.id, {
       stage,
       // Stamp the applied date on first move into "Applied", without
@@ -262,6 +271,7 @@ function KanbanView({ apps: allApps, searching, onEdit }) {
   }
 
   return (
+    <>
     <div className={styles.board}>
       {order.map(stage => {
         // Most-recently-touched cards sit at the top of each column, so a job
@@ -343,6 +353,61 @@ function KanbanView({ apps: allApps, searching, onEdit }) {
         );
       })}
     </div>
+    {closing && (
+      <CloseDialog
+        app={closing}
+        onCancel={() => setClosing(null)}
+        onConfirm={(closeReason, closeNotes) => {
+          update('apps', closing.id, { stage: 'Closed', closeReason, closeNotes });
+          setClosing(null);
+        }}
+      />
+    )}
+    </>
+  );
+}
+
+// Dialog shown when a job is moved to "Closed": a required reason plus optional
+// notes. Cancel (also backdrop/Escape) dismisses without closing the job.
+function CloseDialog({ app, onConfirm, onCancel }) {
+  const [reason, setReason] = useState('');
+  const [notes, setNotes] = useState('');
+
+  return (
+    <Modal
+      title={`Close “${app.title || 'this job'}”`}
+      onClose={onCancel}
+      footer={
+        <>
+          <button type="button" className="btn" onClick={onCancel}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn--primary"
+            disabled={!reason}
+            onClick={() => onConfirm(reason, notes.trim())}
+          >
+            OK
+          </button>
+        </>
+      }
+    >
+      <SelectField
+        label="Reason for closing"
+        value={reason}
+        onChange={e => setReason(e.target.value)}
+        options={CLOSE_REASONS}
+        placeholder="Select a reason…"
+      />
+      <TextArea
+        label="Closing notes"
+        value={notes}
+        onChange={e => setNotes(e.target.value)}
+        placeholder="Optional"
+        rows={3}
+      />
+    </Modal>
   );
 }
 
@@ -409,7 +474,9 @@ function AppCard({ app, onEdit, onMove, dragging, onDragStart, onDragEnd }) {
           </p>
         )}
         {app.stage === 'Closed' && app.closeReason && (
-          <p className={styles.cardCloseReason}>✕ {app.closeReason}</p>
+          <p className={styles.cardCloseReason} title={app.closeNotes || undefined}>
+            ✕ {app.closeReason}
+          </p>
         )}
       </div>
       <div className={styles.cardFooter}>
@@ -488,7 +555,10 @@ function ListView({ apps, onEdit }) {
               <td>
                 <Badge tone={STAGE_TONE[app.stage]}>{app.stage}</Badge>
                 {app.stage === 'Closed' && app.closeReason && (
-                  <div className={styles.closeReason} title={app.closeReason}>
+                  <div
+                    className={styles.closeReason}
+                    title={app.closeNotes || app.closeReason}
+                  >
                     {app.closeReason}
                   </div>
                 )}
@@ -527,6 +597,7 @@ function appHaystack(app, orgName, contactLinksForApp) {
     app.salary,
     app.fitNotes,
     app.closeReason,
+    app.closeNotes,
     ...contactLinksForApp(app).map(l => l.contact.name)
   ]
     .filter(Boolean)

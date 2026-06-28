@@ -7,6 +7,15 @@
 
 export const STAGES = ['Researching', 'Applied', 'Interviewing', 'Offer', 'Closed'];
 
+// Required reason captured when a job is moved to the "Closed" stage.
+export const CLOSE_REASONS = [
+  'Rejected',
+  'Never got back to me',
+  'Not Pursuing',
+  'Redundant or Dupe',
+  'Other'
+];
+
 export const ANALYSIS_TYPES = [
   'Pre-application research',
   'Fit scoring',

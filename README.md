@@ -2,7 +2,7 @@
 
 A local-first dashboard for a deliberate, research-heavy job search. You track each **job** through its stages and score it against **your own explicit Fit Criteria**, so "should I pursue this?" is a written, repeatable judgment instead of a gut feel you re-derive every time.
 
-See [`VISION.md`](./VISION.md) for the full product vision and scope.
+**Live at [searchboard.dev](https://searchboard.dev).** See [`VISION.md`](./VISION.md) for the full product vision and scope.
 
 ## Demo
 
@@ -66,9 +66,10 @@ Two gotchas worth knowing:
 
 Connected to Vercel. Push to `main` to deploy. Set `ANTHROPIC_API_KEY` in the Vercel project's Environment Variables (never commit it).
 
-## Repo
+## Links
 
-https://github.com/bobbrose/searchboard
+- Live site: https://searchboard.dev
+- Repo: https://github.com/bobbrose/searchboard
 
 ## License
 

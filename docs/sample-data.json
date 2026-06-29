@@ -1,0 +1,1108 @@
+{
+  "version": 1,
+  "apps": [
+    {
+      "id": "s000o",
+      "title": "Senior Software Engineer",
+      "orgId": "s0001",
+      "stage": "Researching",
+      "location": "Remote (US)",
+      "link": "https://northwindlabs.com/careers/senior-software-engineer",
+      "fitNotes": "Platform team building the SDKs and CLI behind Northwind's developer tools. Node and TypeScript, heavy on API design, DX, and reliability. Comp not listed.",
+      "userNotes": "Found via their engineering blog — the DX focus is exactly my lane. Want a warm intro before applying. No comp posted, so worth a recruiter call.",
+      "fitScore": 4,
+      "salary": "",
+      "appliedDate": "",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-23T09:00:00.000Z",
+      "updatedAt": "2026-06-24T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "close",
+        "action": "apply",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "unknown",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC on a platform team — your track and level exactly.",
+          "domainFit": "Developer tooling is a top target domain for you.",
+          "comp": "No compensation stated — can't confirm it clears your floor.",
+          "stackAlignment": "Node + TypeScript SDK/CLI work is a direct match.",
+          "redFlags": "None evident from the posting."
+        },
+        "coverLetterHook": "I've spent years building SDKs engineers actually enjoy using — the kind of DX polish your CLI clearly aims for.",
+        "roleDigest": "Senior IC platform, devtools, comp not stated, remote, Node/TypeScript",
+        "scoredAt": "2026-06-24T14:00:00.000Z"
+      },
+      "fitSource": "Platform team building the SDKs and CLI behind Northwind's developer tools. Node and TypeScript, heavy on API design, DX, and reliability. Comp not listed."
+    },
+    {
+      "id": "s000p",
+      "title": "Software Engineer",
+      "orgId": "s0002",
+      "stage": "Researching",
+      "location": "Remote (US)",
+      "link": "https://brightwave.io/careers/software-engineer",
+      "fitNotes": "Full-stack product engineer on a B2B scheduling SaaS. React front end, Node services. Scoped mid-level rather than senior.",
+      "userNotes": "Stack and domain are right, but the level reads junior of where I am and the band only clears my floor at the top. Parking it.",
+      "fitScore": 3,
+      "salary": "$165–190k",
+      "appliedDate": "",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-22T09:00:00.000Z",
+      "updatedAt": "2026-06-23T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "partial",
+        "action": "wait",
+        "dimensions": {
+          "role": "partial",
+          "domain": "match",
+          "comp": "partial",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "Right track and stack but scoped mid-level — below your seniority.",
+          "domainFit": "B2B SaaS is a target domain and matches your background.",
+          "comp": "Band straddles your floor; only the top clears it.",
+          "stackAlignment": "React + Node is a direct match to your stack.",
+          "redFlags": "Level may mean less ownership than you want."
+        },
+        "coverLetterHook": "",
+        "roleDigest": "Mid full-stack, B2B SaaS, $165–190k remote, React/Node",
+        "scoredAt": "2026-06-23T14:00:00.000Z"
+      },
+      "fitSource": "Full-stack product engineer on a B2B scheduling SaaS. React front end, Node services. Scoped mid-level rather than senior."
+    },
+    {
+      "id": "s000q",
+      "title": "Senior Software Engineer",
+      "orgId": "s0003",
+      "stage": "Researching",
+      "location": "Remote (US)",
+      "link": "https://meridiansoft.com/careers/senior-software-engineer",
+      "fitNotes": "Senior engineer on a hospital records (EHR) integration product. Legacy Java/Spring monolith, heavy HL7/FHIR healthcare interop and compliance work.",
+      "userNotes": "Healthcare-IT and a legacy Spring monolith — neither is where I want to be, even though the comp is fine. Here mostly for comparison.",
+      "fitScore": 2,
+      "salary": "$185–210k",
+      "appliedDate": "",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-21T09:00:00.000Z",
+      "updatedAt": "2026-06-22T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "miss",
+        "action": "pass",
+        "dimensions": {
+          "role": "match",
+          "domain": "gap",
+          "comp": "match",
+          "stack": "partial"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC level is right.",
+          "domainFit": "Healthcare-IT / EHR is outside your targets and background.",
+          "comp": "Stated band clears your floor.",
+          "stackAlignment": "Java is in your background, but a legacy Spring/HL7 monolith is a stretch from your Node/React work.",
+          "redFlags": "Heavy regulated-domain compliance overhead."
+        },
+        "coverLetterHook": "",
+        "roleDigest": "Senior IC backend, healthcare-IT, $185–210k remote, legacy Java/Spring",
+        "scoredAt": "2026-06-22T14:00:00.000Z"
+      },
+      "fitSource": "Senior engineer on a hospital records (EHR) integration product. Legacy Java/Spring monolith, heavy HL7/FHIR healthcare interop and compliance work."
+    },
+    {
+      "id": "s000r",
+      "title": "Senior Software Engineer",
+      "orgId": "s0004",
+      "stage": "Researching",
+      "location": "Remote (US)",
+      "link": "https://cobaltdynamics.dev/careers/senior-software-engineer",
+      "fitNotes": "Internal developer-platform team building self-service tooling: a Node/TypeScript control plane over a Java services core, with a React portal. Strong testing and code-review culture, remote-first.",
+      "userNotes": "This one is exciting — comp, stack, and the platform focus all line up, and it's remote-first with a sane engineering culture. Researching the team before I reach out.",
+      "fitScore": 5,
+      "salary": "$210–245k",
+      "appliedDate": "",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-20T09:00:00.000Z",
+      "updatedAt": "2026-06-21T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "perfect",
+        "action": "apply",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "match",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC on an internal platform team — your exact track and level.",
+          "domainFit": "Developer platform / tooling is a top target domain.",
+          "comp": "Stated band sits comfortably above your floor.",
+          "stackAlignment": "Node/TypeScript + Java services + React portal is a direct match.",
+          "redFlags": "None — testing and review culture called out, remote-first."
+        },
+        "coverLetterHook": "Self-service platforms live or die on developer experience — building the Node control plane and React portal that make the paved road obvious is exactly my work.",
+        "roleDigest": "Senior IC platform, developer platform, $210–245k remote, Node/TypeScript/Java/React",
+        "scoredAt": "2026-06-21T14:00:00.000Z"
+      },
+      "fitSource": "Internal developer-platform team building self-service tooling: a Node/TypeScript control plane over a Java services core, with a React portal. Strong testing and code-review culture, remote-first."
+    },
+    {
+      "id": "s000s",
+      "title": "Software Engineer",
+      "orgId": "s0005",
+      "stage": "Researching",
+      "location": "Remote (US)",
+      "link": "https://lumenanalytics.com/careers/software-engineer",
+      "fitNotes": "Data-platform team building ingestion pipelines and a React analytics UI. TypeScript front end, Python services. Posting is light on detail.",
+      "userNotes": "Just added — haven't scored it yet. Need to read the full JD and figure out how backend-heavy it really is before forming a view.",
+      "fitScore": 3,
+      "salary": "$175–195k",
+      "appliedDate": "",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-19T09:00:00.000Z",
+      "updatedAt": "2026-06-20T12:00:00.000Z"
+    },
+    {
+      "id": "s000t",
+      "title": "Senior Software Engineer",
+      "orgId": "s0006",
+      "stage": "Applied",
+      "location": "Remote (US)",
+      "link": "https://atlasforge.io/careers/senior-software-engineer",
+      "fitNotes": "Senior full-stack engineer on the build-tooling team — CI/CD for large monorepos. Node and TypeScript services with a React dashboard, deep performance work.",
+      "userNotes": "Applied through Dana's referral. This is close to a dream role — devtools, my exact stack, comp at the top of my range. Following up with her this week.",
+      "fitScore": 5,
+      "salary": "$205–235k",
+      "appliedDate": "2026-06-17",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [
+        {
+          "contactId": "s000l",
+          "relation": "referrer"
+        }
+      ],
+      "contactIds": [
+        "s000l"
+      ],
+      "createdAt": "2026-06-16T09:00:00.000Z",
+      "updatedAt": "2026-06-17T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "perfect",
+        "action": "apply",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "match",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC full-stack — your exact track and level.",
+          "domainFit": "Developer tooling / CI-CD is a core target domain.",
+          "comp": "Band is well above your floor.",
+          "stackAlignment": "Node/TypeScript + React performance work is a direct match.",
+          "redFlags": "None — and you have a warm referral."
+        },
+        "coverLetterHook": "Making builds fast for big monorepos is a problem I genuinely enjoy — I've halved CI times doing exactly this.",
+        "roleDigest": "Senior IC full-stack, devtools/CI-CD, $205–235k remote, Node/TypeScript/React",
+        "scoredAt": "2026-06-17T14:00:00.000Z"
+      },
+      "fitSource": "Senior full-stack engineer on the build-tooling team — CI/CD for large monorepos. Node and TypeScript services with a React dashboard, deep performance work."
+    },
+    {
+      "id": "s000u",
+      "title": "Software Engineer",
+      "orgId": "s0007",
+      "stage": "Applied",
+      "location": "Remote (US)",
+      "link": "https://riverstone.tech/careers/software-engineer",
+      "fitNotes": "Payments engineer building ledger and reconciliation services. Java and TypeScript, Postgres, strong correctness and testing focus. React ops console.",
+      "userNotes": "Applied. The scorer first called this a close fit and dinged the fintech domain; I corrected it — payments/ledger correctness is exactly the kind of careful backend work I want. Set it to Perfect.",
+      "fitScore": 5,
+      "salary": "$195–225k",
+      "appliedDate": "2026-06-16",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-15T09:00:00.000Z",
+      "updatedAt": "2026-06-16T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "perfect",
+        "action": "apply",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "match",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "IC backend on core financial infrastructure — matches your level.",
+          "domainFit": "Fintech/payments is a fine domain for you (per your calibration); ledger work suits you.",
+          "comp": "Stated band clears your floor.",
+          "stackAlignment": "Java + TypeScript + Postgres + React is a direct match.",
+          "redFlags": "None."
+        },
+        "coverLetterHook": "Ledgers reward engineers who value correctness over cleverness — that's how I build.",
+        "roleDigest": "IC backend, fintech/payments, $195–225k remote, Java/TypeScript/Postgres",
+        "userAdjusted": true,
+        "scoredAt": "2026-06-16T14:00:00.000Z"
+      },
+      "fitSource": "Payments engineer building ledger and reconciliation services. Java and TypeScript, Postgres, strong correctness and testing focus. React ops console."
+    },
+    {
+      "id": "s000v",
+      "title": "Senior Software Engineer",
+      "orgId": "s0008",
+      "stage": "Applied",
+      "location": "Remote (US)",
+      "link": "https://quantacloud.com/careers/senior-software-engineer",
+      "fitNotes": "Senior engineer on the storage team. Mostly C++ and Rust for a distributed object store, with a thin Node control API. Systems-heavy, on-call rotation.",
+      "userNotes": "Applied, but the C++/Rust core is a stretch from my Node/Java work — partial feels right. The infra domain and comp are good, so worth a conversation.",
+      "fitScore": 4,
+      "salary": "$200–230k",
+      "appliedDate": "2026-06-15",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-14T09:00:00.000Z",
+      "updatedAt": "2026-06-15T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "partial",
+        "action": "wait",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "match",
+          "stack": "partial"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC systems role — level and track match.",
+          "domainFit": "Cloud infrastructure is a target domain.",
+          "comp": "Band clears your floor.",
+          "stackAlignment": "Core is C++/Rust — a clear stretch from your Node/Java/React background.",
+          "redFlags": "Demanding on-call rotation noted."
+        },
+        "coverLetterHook": "I bring product-grade rigor to systems work — I'd ramp into the C++ core while owning the control API from day one.",
+        "roleDigest": "Senior IC systems, cloud infra, $200–230k remote, C++/Rust + Node",
+        "scoredAt": "2026-06-15T14:00:00.000Z"
+      },
+      "fitSource": "Senior engineer on the storage team. Mostly C++ and Rust for a distributed object store, with a thin Node control API. Systems-heavy, on-call rotation."
+    },
+    {
+      "id": "s000w",
+      "title": "Senior Software Engineer",
+      "orgId": "s0009",
+      "stage": "Applied",
+      "location": "Remote (US)",
+      "link": "https://verdantsystems.com/careers/senior-software-engineer",
+      "fitNotes": "Senior full-stack engineer on a grid-optimization product for utilities. React front end, Python data services. Mission-driven climate company.",
+      "userNotes": "Applied because the mission really appeals to me. Stack is more Python-data than my Node/Java strength, and the band only half-clears my floor — partial is fair.",
+      "fitScore": 3,
+      "salary": "$180–205k",
+      "appliedDate": "2026-06-14",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-13T09:00:00.000Z",
+      "updatedAt": "2026-06-14T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "partial",
+        "action": "wait",
+        "dimensions": {
+          "role": "match",
+          "domain": "partial",
+          "comp": "partial",
+          "stack": "partial"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC level matches.",
+          "domainFit": "Climate/energy is adjacent and a stated interest, but new to you.",
+          "comp": "Band straddles your floor.",
+          "stackAlignment": "React matches, but the Python data services lean away from your Node/Java core.",
+          "redFlags": "None — mission-driven, which you value."
+        },
+        "coverLetterHook": "Optimizing the grid is software that matters — I'd bring full-stack rigor to a problem worth solving.",
+        "roleDigest": "Senior full-stack, climate/energy, $180–205k remote, React/Python",
+        "scoredAt": "2026-06-14T14:00:00.000Z"
+      },
+      "fitSource": "Senior full-stack engineer on a grid-optimization product for utilities. React front end, Python data services. Mission-driven climate company."
+    },
+    {
+      "id": "s000x",
+      "title": "Senior Software Engineer",
+      "orgId": "s000a",
+      "stage": "Applied",
+      "location": "Remote (US)",
+      "link": "https://pinewoodrobotics.com/careers/senior-software-engineer",
+      "fitNotes": "Senior engineer on the fleet-software team — coordination and telemetry services for warehouse robots. Node/TypeScript services with a React operations dashboard.",
+      "userNotes": "Applied. Robotics is novel for me, but the backend coordination and the Node/React stack are squarely my skill set.",
+      "fitScore": 4,
+      "salary": "$200–240k",
+      "appliedDate": "2026-06-13",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-12T09:00:00.000Z",
+      "updatedAt": "2026-06-13T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "close",
+        "action": "apply",
+        "dimensions": {
+          "role": "match",
+          "domain": "partial",
+          "comp": "match",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC backend — your track and level.",
+          "domainFit": "Robotics is new to you, but the fleet/coordination software is familiar territory.",
+          "comp": "Stated band is above your floor.",
+          "stackAlignment": "Node/TypeScript + React is a direct match.",
+          "redFlags": "None obvious."
+        },
+        "coverLetterHook": "Fleet coordination is a distributed-systems problem wearing a hard hat — exactly the kind I like.",
+        "roleDigest": "Senior IC backend, robotics, $200–240k remote, Node/TypeScript/React",
+        "scoredAt": "2026-06-13T14:00:00.000Z"
+      },
+      "fitSource": "Senior engineer on the fleet-software team — coordination and telemetry services for warehouse robots. Node/TypeScript services with a React operations dashboard."
+    },
+    {
+      "id": "s000y",
+      "title": "Senior Software Engineer",
+      "orgId": "s000b",
+      "stage": "Interviewing",
+      "location": "Remote (US)",
+      "link": "https://driftharbor.io/careers/senior-software-engineer",
+      "fitNotes": "Senior backend engineer on a consumer photo-sharing app. Node/TypeScript services behind a high-traffic API, React web client. Scaling and latency focus.",
+      "userNotes": "Phone screen done; two technical rounds next week. Liked the team — consumer scale is a fun change and the stack is mine.",
+      "fitScore": 4,
+      "salary": "$195–225k",
+      "appliedDate": "2026-06-06",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-10T09:00:00.000Z",
+      "updatedAt": "2026-06-11T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "close",
+        "action": "apply",
+        "dimensions": {
+          "role": "match",
+          "domain": "partial",
+          "comp": "match",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC backend — level and track match.",
+          "domainFit": "Consumer apps is adjacent to your B2B background.",
+          "comp": "Band clears your floor.",
+          "stackAlignment": "High-traffic Node/TypeScript + React work fits your experience.",
+          "redFlags": "None."
+        },
+        "coverLetterHook": "Low latency at consumer scale is a craft — I've kept p99s flat through 10x growth on a Node stack.",
+        "roleDigest": "Senior IC backend, consumer, $195–225k remote, Node/TypeScript/React",
+        "scoredAt": "2026-06-11T14:00:00.000Z"
+      },
+      "fitSource": "Senior backend engineer on a consumer photo-sharing app. Node/TypeScript services behind a high-traffic API, React web client. Scaling and latency focus."
+    },
+    {
+      "id": "s000z",
+      "title": "Software Engineer",
+      "orgId": "s000c",
+      "stage": "Interviewing",
+      "location": "Remote (US)",
+      "link": "https://summitlogic.dev/careers/software-engineer",
+      "fitNotes": "Engineer on the language-tooling team building an editor extension and a TypeScript-based static analyzer. Node, TypeScript, and a React settings UI. Deeply technical devtools shop, remote-first.",
+      "userNotes": "Two rounds in and it's going great. After Tessera this is the strongest fit in the pipeline — exactly the kind of tooling work I want, in my stack.",
+      "fitScore": 5,
+      "salary": "$200–230k",
+      "appliedDate": "2026-06-05",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-09T09:00:00.000Z",
+      "updatedAt": "2026-06-10T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "perfect",
+        "action": "apply",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "match",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "IC engineer on core tooling — your track and level.",
+          "domainFit": "Developer tooling is a top target domain.",
+          "comp": "Stated band clears your floor.",
+          "stackAlignment": "Node + TypeScript + React tooling is a direct match.",
+          "redFlags": "None — remote-first technical culture."
+        },
+        "coverLetterHook": "I love making the editor smarter — analyzer work where milliseconds and correctness both matter is my favorite kind.",
+        "roleDigest": "IC engineer, devtools/language-tooling, $200–230k remote, Node/TypeScript/React",
+        "scoredAt": "2026-06-10T14:00:00.000Z"
+      },
+      "fitSource": "Engineer on the language-tooling team building an editor extension and a TypeScript-based static analyzer. Node, TypeScript, and a React settings UI. Deeply technical devtools shop, remote-first."
+    },
+    {
+      "id": "s0010",
+      "title": "Senior Software Engineer",
+      "orgId": "s000d",
+      "stage": "Interviewing",
+      "location": "Remote (US)",
+      "link": "https://halcyondata.com/careers/senior-software-engineer",
+      "fitNotes": "Senior engineer on a streaming-data platform. Node/TypeScript API and control plane over a Scala/Kafka core, exactly-once delivery guarantees. React monitoring UI.",
+      "userNotes": "Past the take-home; system-design round Thursday. Solid team, comp is right. The Scala core is the only stretch.",
+      "fitScore": 4,
+      "salary": "$205–235k",
+      "appliedDate": "2026-06-04",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-08T09:00:00.000Z",
+      "updatedAt": "2026-06-09T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "close",
+        "action": "apply",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "match",
+          "stack": "partial"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC backend — matches your level.",
+          "domainFit": "Data infrastructure is a target domain.",
+          "comp": "Band clears your floor.",
+          "stackAlignment": "Node/TypeScript + React match; the Scala/Kafka core is a partial stretch.",
+          "redFlags": "None."
+        },
+        "coverLetterHook": "Exactly-once is where distributed systems get honest — I've shipped pipelines that hold the guarantee under pressure.",
+        "roleDigest": "Senior IC backend, data infra, $205–235k remote, Node/TypeScript + Scala/Kafka",
+        "scoredAt": "2026-06-09T14:00:00.000Z"
+      },
+      "fitSource": "Senior engineer on a streaming-data platform. Node/TypeScript API and control plane over a Scala/Kafka core, exactly-once delivery guarantees. React monitoring UI."
+    },
+    {
+      "id": "s0011",
+      "title": "Senior Software Engineer",
+      "orgId": "s000e",
+      "stage": "Interviewing",
+      "location": "Remote (US)",
+      "link": "https://ironcladcompute.com/careers/senior-software-engineer",
+      "fitNotes": "Senior engineer on a bare-metal provisioning product. Go and a lot of Linux/networking internals, thin Node admin API. Heavy on-call expectations.",
+      "userNotes": "Interviewing, but the Go + low-level networking depth is far from my stack, and the on-call load is steep. Partial, and I agree — keeping the conversation going for now.",
+      "fitScore": 3,
+      "salary": "$185–210k",
+      "appliedDate": "2026-06-03",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-07T09:00:00.000Z",
+      "updatedAt": "2026-06-08T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "partial",
+        "action": "wait",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "partial",
+          "stack": "gap"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC level matches.",
+          "domainFit": "Cloud/infra is a target domain.",
+          "comp": "Band sits at the low edge of your floor.",
+          "stackAlignment": "Go + deep Linux/networking internals is a gap versus your Node/Java/React core.",
+          "redFlags": "Aggressive on-call rotation called out — one of your watch patterns."
+        },
+        "coverLetterHook": "Provisioning bare metal reliably is unglamorous and essential — I'm drawn to the unglamorous parts.",
+        "roleDigest": "Senior IC infra, cloud infra, $185–210k remote, Go/Linux networking",
+        "scoredAt": "2026-06-08T14:00:00.000Z"
+      },
+      "fitSource": "Senior engineer on a bare-metal provisioning product. Go and a lot of Linux/networking internals, thin Node admin API. Heavy on-call expectations."
+    },
+    {
+      "id": "s0012",
+      "title": "Senior Software Engineer",
+      "orgId": "s000f",
+      "stage": "Interviewing",
+      "location": "Remote (US)",
+      "link": "https://beacon-ai.com/careers/senior-software-engineer",
+      "fitNotes": "Senior platform engineer building the serving and orchestration layer for an ML platform. Node/TypeScript services with a React console, some Python. AI-first company, fast growth.",
+      "userNotes": "Final-round loop next week, set up by Marcus. Strong comp and a platform (not modeling) focus that suits me. Only hesitation is the hypergrowth pace — want to probe on-call and sustainability.",
+      "fitScore": 4,
+      "salary": "$210–250k",
+      "appliedDate": "2026-06-02",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [
+        {
+          "contactId": "s000m",
+          "relation": "recruiter"
+        }
+      ],
+      "contactIds": [
+        "s000m"
+      ],
+      "createdAt": "2026-06-06T09:00:00.000Z",
+      "updatedAt": "2026-06-07T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "close",
+        "action": "apply",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "match",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC platform role — your track and level.",
+          "domainFit": "AI/ML platform is a target; you want platform over modeling.",
+          "comp": "Band is comfortably above your floor.",
+          "stackAlignment": "Node/TypeScript + React serving infra is a direct match.",
+          "redFlags": "Hypergrowth pace flagged — short of perfect until you confirm a sane on-call rotation."
+        },
+        "coverLetterHook": "The unsung half of AI is the serving layer — I build the orchestration that keeps models fast and online.",
+        "roleDigest": "Senior IC platform, AI/ML platform, $210–250k remote, Node/TypeScript/React",
+        "scoredAt": "2026-06-07T14:00:00.000Z"
+      },
+      "fitSource": "Senior platform engineer building the serving and orchestration layer for an ML platform. Node/TypeScript services with a React console, some Python. AI-first company, fast growth."
+    },
+    {
+      "id": "s0013",
+      "title": "Senior Software Engineer",
+      "orgId": "s000g",
+      "stage": "Offer",
+      "location": "Remote (US)",
+      "link": "https://tessera.net/careers/senior-software-engineer",
+      "fitNotes": "Senior full-stack engineer on the API-gateway and edge-routing team. Node/TypeScript control plane, Java edge services, React admin console. Strong reliability and testing culture, remote-first.",
+      "userNotes": "Offer in hand! Comp at the top of my range, the work is exactly devtools/platform in my stack, and Priya's team is remote-first and sane. This is the front-runner.",
+      "fitScore": 5,
+      "salary": "$225–255k",
+      "appliedDate": "2026-06-01",
+      "closeReason": "",
+      "closeNotes": "",
+      "contactLinks": [
+        {
+          "contactId": "s000n",
+          "relation": "contact"
+        }
+      ],
+      "contactIds": [
+        "s000n"
+      ],
+      "createdAt": "2026-06-04T09:00:00.000Z",
+      "updatedAt": "2026-06-05T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "perfect",
+        "action": "apply",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "match",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC full-stack on core infra — your exact track and level.",
+          "domainFit": "Developer tooling / networking infra is a top target domain.",
+          "comp": "Offer sits at the top of your range, well above floor.",
+          "stackAlignment": "Node/TypeScript + Java + React is a direct match.",
+          "redFlags": "None — remote-first, sustainable pace, strong testing culture."
+        },
+        "coverLetterHook": "Edge routing that just works is invisible engineering at its best — I've built the gateways and admin consoles that make it look easy.",
+        "roleDigest": "Senior IC full-stack, devtools/networking, $225–255k remote, Node/TypeScript/Java/React",
+        "scoredAt": "2026-06-05T14:00:00.000Z"
+      },
+      "fitSource": "Senior full-stack engineer on the API-gateway and edge-routing team. Node/TypeScript control plane, Java edge services, React admin console. Strong reliability and testing culture, remote-first."
+    },
+    {
+      "id": "s0014",
+      "title": "Senior Software Engineer",
+      "orgId": "s000h",
+      "stage": "Closed",
+      "location": "Remote (US)",
+      "link": "https://polarispay.com/careers/senior-software-engineer",
+      "fitNotes": "Senior engineer on a card-processing team. Legacy Java/Spring, PCI-compliance heavy. Comp tops out below my floor.",
+      "userNotes": "Applied early in the search before I tightened my filters. Fintech is fine with me, but the comp was low and it was a legacy-Spring, compliance-first shop. No surprise it didn't go anywhere.",
+      "fitScore": 2,
+      "salary": "$160–180k",
+      "appliedDate": "2026-06-08",
+      "closeReason": "Rejected",
+      "closeNotes": "Rejected after the first technical round — they wanted deeper card-processing/PCI experience than I have. Comp was under my floor anyway.",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-11T09:00:00.000Z",
+      "updatedAt": "2026-06-12T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "miss",
+        "action": "pass",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "gap",
+          "stack": "partial"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC level matches.",
+          "domainFit": "Payments is a fine domain for you.",
+          "comp": "Top of band ($180k) is below your $185k floor.",
+          "stackAlignment": "Legacy Java/Spring + PCI tooling is a stretch from your Node/React work.",
+          "redFlags": "Heavy compliance overhead, comp under floor."
+        },
+        "coverLetterHook": "",
+        "roleDigest": "Senior IC backend, payments, $160–180k remote, legacy Java/Spring",
+        "scoredAt": "2026-06-12T14:00:00.000Z"
+      },
+      "fitSource": "Senior engineer on a card-processing team. Legacy Java/Spring, PCI-compliance heavy. Comp tops out below my floor."
+    },
+    {
+      "id": "s0015",
+      "title": "Software Engineer",
+      "orgId": "s000i",
+      "stage": "Closed",
+      "location": "Remote (US)",
+      "link": "https://maplegrid.io/careers/software-engineer",
+      "fitNotes": "Full-stack engineer on a residential-solar monitoring product. React and Node, some Python. Mission-driven, mid-level scope.",
+      "userNotes": "Liked the mission and had a good first chat, then silence. Closing it out — they never got back to me.",
+      "fitScore": 3,
+      "salary": "$175–200k",
+      "appliedDate": "2026-06-09",
+      "closeReason": "Never got back to me",
+      "closeNotes": "Recruiter went dark after a promising first call. Followed up twice over three weeks with no reply.",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-12T09:00:00.000Z",
+      "updatedAt": "2026-06-13T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "partial",
+        "action": "wait",
+        "dimensions": {
+          "role": "partial",
+          "domain": "partial",
+          "comp": "partial",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "Right track but scoped a touch below senior.",
+          "domainFit": "Climate/energy is adjacent to your background.",
+          "comp": "Band straddles your floor.",
+          "stackAlignment": "React/Node is a direct match.",
+          "redFlags": "None."
+        },
+        "coverLetterHook": "",
+        "roleDigest": "Mid full-stack, climate/energy, $175–200k remote, React/Node",
+        "scoredAt": "2026-06-13T14:00:00.000Z"
+      },
+      "fitSource": "Full-stack engineer on a residential-solar monitoring product. React and Node, some Python. Mission-driven, mid-level scope."
+    },
+    {
+      "id": "s0016",
+      "title": "Senior Software Engineer",
+      "orgId": "s000j",
+      "stage": "Closed",
+      "location": "Remote (US)",
+      "link": "https://onyxstream.tv/careers/senior-software-engineer",
+      "fitNotes": "Senior backend engineer on a video-delivery / CDN team. Node/TypeScript services with a React admin, latency-critical. Strong comp and a good technical fit on paper.",
+      "userNotes": "Good fit technically — my stack, good comp — but they started framing it as a lead-into-management role. I want to stay IC, so I pulled out. Logged that as a calibration.",
+      "fitScore": 4,
+      "salary": "$200–230k",
+      "appliedDate": "2026-06-10",
+      "closeReason": "Not Pursuing",
+      "closeNotes": "Withdrew myself — the role drifted toward a people-management track in the second conversation, which isn't what I want.",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-17T09:00:00.000Z",
+      "updatedAt": "2026-06-18T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "close",
+        "action": "apply",
+        "dimensions": {
+          "role": "match",
+          "domain": "match",
+          "comp": "match",
+          "stack": "match"
+        },
+        "reasoning": {
+          "roleFit": "Senior IC backend as posted — your track and level.",
+          "domainFit": "Media/streaming infra is adjacent and interesting.",
+          "comp": "Band clears your floor.",
+          "stackAlignment": "Node/TypeScript + React is a direct match.",
+          "redFlags": "Role later leaned toward people-management — a mismatch for your IC preference."
+        },
+        "coverLetterHook": "Delivering video at the edge without a stutter is a latency game I enjoy playing.",
+        "roleDigest": "Senior IC backend, media/streaming, $200–230k remote, Node/TypeScript/React",
+        "scoredAt": "2026-06-18T14:00:00.000Z"
+      },
+      "fitSource": "Senior backend engineer on a video-delivery / CDN team. Node/TypeScript services with a React admin, latency-critical. Strong comp and a good technical fit on paper."
+    },
+    {
+      "id": "s0017",
+      "title": "Senior Software Engineer",
+      "orgId": "s000k",
+      "stage": "Closed",
+      "location": "Remote (US)",
+      "link": "https://cedarandbyte.com/careers/senior-software-engineer",
+      "fitNotes": "Generalist engineer at a dev agency doing client project work. Whatever-the-client-uses stack, lots of context-switching. Lower comp.",
+      "userNotes": "Agency/consulting isn't my target, the comp is under my floor, and it was a dupe of another listing anyway. Closed it.",
+      "fitScore": 2,
+      "salary": "$150–170k",
+      "appliedDate": "2026-06-11",
+      "closeReason": "Redundant or Dupe",
+      "closeNotes": "Turned out to be the same role a staffing agency had already submitted me for under a different listing. Closed as a duplicate.",
+      "contactLinks": [],
+      "contactIds": [],
+      "createdAt": "2026-06-18T09:00:00.000Z",
+      "updatedAt": "2026-06-19T12:00:00.000Z",
+      "fitVerdict": {
+        "fit": "miss",
+        "action": "pass",
+        "dimensions": {
+          "role": "partial",
+          "domain": "gap",
+          "comp": "gap",
+          "stack": "partial"
+        },
+        "reasoning": {
+          "roleFit": "Generalist agency role; level is fuzzy and client-driven.",
+          "domainFit": "Agency/consulting is outside your targets.",
+          "comp": "Top of band ($170k) is below your floor.",
+          "stackAlignment": "Whatever-the-client-uses is a scattered, partial fit.",
+          "redFlags": "Constant context-switching across clients; comp under floor."
+        },
+        "coverLetterHook": "",
+        "roleDigest": "Generalist IC, agency/consulting, $150–170k remote, mixed stack",
+        "scoredAt": "2026-06-19T14:00:00.000Z"
+      },
+      "fitSource": "Generalist engineer at a dev agency doing client project work. Whatever-the-client-uses stack, lots of context-switching. Lower comp."
+    }
+  ],
+  "orgs": [
+    {
+      "id": "s0001",
+      "name": "Northwind Labs",
+      "website": "northwindlabs.com",
+      "industry": "Developer tools",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-02T10:00:00.000Z",
+      "updatedAt": "2026-06-02T10:00:00.000Z"
+    },
+    {
+      "id": "s0002",
+      "name": "Brightwave Systems",
+      "website": "brightwave.io",
+      "industry": "B2B SaaS",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-03T10:00:00.000Z",
+      "updatedAt": "2026-06-03T10:00:00.000Z"
+    },
+    {
+      "id": "s0003",
+      "name": "Meridian Software",
+      "website": "meridiansoft.com",
+      "industry": "Healthcare IT",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-04T10:00:00.000Z",
+      "updatedAt": "2026-06-04T10:00:00.000Z"
+    },
+    {
+      "id": "s0004",
+      "name": "Cobalt Dynamics",
+      "website": "cobaltdynamics.dev",
+      "industry": "Developer platform",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-05T10:00:00.000Z",
+      "updatedAt": "2026-06-05T10:00:00.000Z"
+    },
+    {
+      "id": "s0005",
+      "name": "Lumen Analytics",
+      "website": "lumenanalytics.com",
+      "industry": "Data analytics",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-06T10:00:00.000Z",
+      "updatedAt": "2026-06-06T10:00:00.000Z"
+    },
+    {
+      "id": "s0006",
+      "name": "Atlas Forge",
+      "website": "atlasforge.io",
+      "industry": "Developer tools",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-07T10:00:00.000Z",
+      "updatedAt": "2026-06-07T10:00:00.000Z"
+    },
+    {
+      "id": "s0007",
+      "name": "Riverstone Tech",
+      "website": "riverstone.tech",
+      "industry": "Fintech",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-08T10:00:00.000Z",
+      "updatedAt": "2026-06-08T10:00:00.000Z"
+    },
+    {
+      "id": "s0008",
+      "name": "Quanta Cloud",
+      "website": "quantacloud.com",
+      "industry": "Cloud infrastructure",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-09T10:00:00.000Z",
+      "updatedAt": "2026-06-09T10:00:00.000Z"
+    },
+    {
+      "id": "s0009",
+      "name": "Verdant Systems",
+      "website": "verdantsystems.com",
+      "industry": "Climate / energy",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-10T10:00:00.000Z",
+      "updatedAt": "2026-06-10T10:00:00.000Z"
+    },
+    {
+      "id": "s000a",
+      "name": "Pinewood Robotics",
+      "website": "pinewoodrobotics.com",
+      "industry": "Robotics",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-11T10:00:00.000Z",
+      "updatedAt": "2026-06-11T10:00:00.000Z"
+    },
+    {
+      "id": "s000b",
+      "name": "Drift Harbor",
+      "website": "driftharbor.io",
+      "industry": "Consumer apps",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-12T10:00:00.000Z",
+      "updatedAt": "2026-06-12T10:00:00.000Z"
+    },
+    {
+      "id": "s000c",
+      "name": "Summit Logic",
+      "website": "summitlogic.dev",
+      "industry": "Developer tools",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-13T10:00:00.000Z",
+      "updatedAt": "2026-06-13T10:00:00.000Z"
+    },
+    {
+      "id": "s000d",
+      "name": "Halcyon Data",
+      "website": "halcyondata.com",
+      "industry": "Data infrastructure",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-02T10:00:00.000Z",
+      "updatedAt": "2026-06-02T10:00:00.000Z"
+    },
+    {
+      "id": "s000e",
+      "name": "Ironclad Compute",
+      "website": "ironcladcompute.com",
+      "industry": "Cloud infrastructure",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-03T10:00:00.000Z",
+      "updatedAt": "2026-06-03T10:00:00.000Z"
+    },
+    {
+      "id": "s000f",
+      "name": "Beacon AI",
+      "website": "beacon-ai.com",
+      "industry": "AI / ML platform",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-04T10:00:00.000Z",
+      "updatedAt": "2026-06-04T10:00:00.000Z"
+    },
+    {
+      "id": "s000g",
+      "name": "Tessera Networks",
+      "website": "tessera.net",
+      "industry": "Developer tools",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-05T10:00:00.000Z",
+      "updatedAt": "2026-06-05T10:00:00.000Z"
+    },
+    {
+      "id": "s000h",
+      "name": "Polaris Payments",
+      "website": "polarispay.com",
+      "industry": "Fintech",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-06T10:00:00.000Z",
+      "updatedAt": "2026-06-06T10:00:00.000Z"
+    },
+    {
+      "id": "s000i",
+      "name": "Maple Grid",
+      "website": "maplegrid.io",
+      "industry": "Climate / energy",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-07T10:00:00.000Z",
+      "updatedAt": "2026-06-07T10:00:00.000Z"
+    },
+    {
+      "id": "s000j",
+      "name": "Onyx Streaming",
+      "website": "onyxstream.tv",
+      "industry": "Media / streaming",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-08T10:00:00.000Z",
+      "updatedAt": "2026-06-08T10:00:00.000Z"
+    },
+    {
+      "id": "s000k",
+      "name": "Cedar & Byte",
+      "website": "cedarandbyte.com",
+      "industry": "Agency / consulting",
+      "location": "Remote (US)",
+      "createdAt": "2026-06-09T10:00:00.000Z",
+      "updatedAt": "2026-06-09T10:00:00.000Z"
+    }
+  ],
+  "contacts": [
+    {
+      "id": "s000l",
+      "name": "Dana Whitfield",
+      "role": "Staff Engineer",
+      "orgId": "s0006",
+      "relationshipType": "Warm contact",
+      "email": "dana.whitfield@atlasforge.io",
+      "phone": "",
+      "lastContacted": "2026-06-15",
+      "notes": "Former colleague from my last team. Offered to refer me at Atlas Forge.",
+      "createdAt": "2026-06-14T10:00:00.000Z",
+      "updatedAt": "2026-06-15T10:00:00.000Z"
+    },
+    {
+      "id": "s000m",
+      "name": "Marcus Lee",
+      "role": "Technical Recruiter",
+      "orgId": "s000f",
+      "relationshipType": "Recruiter",
+      "email": "marcus.lee@beacon-ai.com",
+      "phone": "",
+      "lastContacted": "2026-06-07",
+      "notes": "Reached out on LinkedIn. Responsive; runs the platform-team loop.",
+      "createdAt": "2026-06-06T10:00:00.000Z",
+      "updatedAt": "2026-06-07T10:00:00.000Z"
+    },
+    {
+      "id": "s000n",
+      "name": "Priya Nair",
+      "role": "Engineering Manager",
+      "orgId": "s000g",
+      "relationshipType": "Hiring manager",
+      "email": "priya.nair@tessera.net",
+      "phone": "",
+      "lastContacted": "2026-06-05",
+      "notes": "Hiring manager for the edge-routing team. Great conversations all the way through.",
+      "createdAt": "2026-06-04T10:00:00.000Z",
+      "updatedAt": "2026-06-05T10:00:00.000Z"
+    }
+  ],
+  "analyses": [],
+  "todos": [],
+  "profile": {
+    "homeState": "CO",
+    "targetTitles": [
+      "Senior Software Engineer",
+      "Senior Full-Stack Engineer",
+      "Senior Backend Engineer",
+      "Staff Software Engineer"
+    ],
+    "hardFilters": {
+      "compFloor": 185000,
+      "remoteRequired": true,
+      "domainExclusions": [
+        "gambling",
+        "adtech",
+        "crypto",
+        "defense"
+      ],
+      "relocationExceptions": [],
+      "notes": "Comp floor is base salary; flexible if equity and growth are strong. Remote-first only — open to occasional travel, but not hybrid or return-to-office."
+    },
+    "softPreferences": {
+      "productVsInfra": "balanced",
+      "companyAttributes": [
+        "Growth-stage",
+        "Mission-driven",
+        "B2B SaaS",
+        "Remote-first",
+        "Sustainable pace"
+      ],
+      "notes": "Core stack is Node/TypeScript and React with a Java services background; happy to go deeper on backend and developer platform. Fintech and payments are fine. Want a team that values testing, code review, and a sustainable on-call rotation."
+    },
+    "differentiators": [
+      "Scaled a Node/TypeScript API platform to 50M requests/day while cutting p99 latency 40%",
+      "Led the migration of a Java monolith to TypeScript services with zero customer downtime",
+      "Built and maintained a React design system adopted by 30+ engineers across six teams",
+      "Mentored five engineers from mid to senior and owned the team's code-review and testing standards"
+    ],
+    "redFlagPatterns": [
+      "Vague scope or \"wear many hats\" with no clear ownership",
+      "\"Rockstar\" / \"ninja\" / \"work hard, play hard\" language",
+      "Unlimited PTO presented as a perk with no stated minimum",
+      "On-call with no compensation or rotation detail",
+      "Return-to-office creep dressed up as \"flexible remote\""
+    ],
+    "fitCalibration": [
+      {
+        "id": "s0018",
+        "digest": "Senior IC backend, fintech/payments, $195–225k remote, Java/TypeScript",
+        "given": {
+          "fit": "close",
+          "action": "apply"
+        },
+        "correct": {
+          "fit": "perfect",
+          "action": "apply"
+        },
+        "note": "Fintech and payments are a fine domain for me — don't down-rank a role just for being in it.",
+        "at": "2026-06-16T14:00:00.000Z"
+      },
+      {
+        "id": "s0019",
+        "digest": "Senior IC backend, media/streaming, $200–230k remote, Node/TypeScript/React",
+        "given": {
+          "fit": "close",
+          "action": "apply"
+        },
+        "correct": {
+          "fit": "partial",
+          "action": "wait"
+        },
+        "note": "I want to stay an IC — a role that drifts toward people-management is a real downgrade for me.",
+        "at": "2026-06-18T15:00:00.000Z"
+      }
+    ],
+    "updatedAt": "2026-06-20T16:00:00.000Z"
+  },
+  "lastSaved": "2026-06-28T16:00:00.000Z"
+}

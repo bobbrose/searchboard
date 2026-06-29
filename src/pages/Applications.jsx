@@ -8,7 +8,14 @@ import Modal from '../components/Modal.jsx';
 import { SelectField, TextArea } from '../components/Field.jsx';
 import ApplicationForm from '../forms/ApplicationForm.jsx';
 import { useDb, useSelectors } from '../lib/db.jsx';
-import { STAGES, CLOSE_REASONS, exportAsFile, importFromFile, mergeDB } from '../lib/store.js';
+import {
+  STAGES,
+  CLOSE_REASONS,
+  exportAsFile,
+  importFromFile,
+  mergeDB,
+  emptyDB
+} from '../lib/store.js';
 import { hasCriteria } from '../lib/fit.js';
 import { formatDate, today } from '../lib/dates.js';
 import { withProtocol, displayUrl } from '../lib/website.js';
@@ -22,6 +29,12 @@ const STAGE_TONE = {
   Closed: 'done'
 };
 
+// The sample board lives in the repo (docs/sample-data.json) and is fetched from
+// GitHub raw on demand, so it isn't bundled into the app. raw.githubusercontent
+// sends `Access-Control-Allow-Origin: *`, so the browser fetch is allowed.
+const SAMPLE_DATA_URL =
+  'https://raw.githubusercontent.com/bobbrose/searchboard/main/docs/sample-data.json';
+
 export default function Applications() {
   const { db, replaceAll } = useDb();
   const { orgName, contactLinksForApp } = useSelectors();
@@ -29,6 +42,7 @@ export default function Applications() {
   const [editing, setEditing] = useState(null); // app record, {} for new, or null
   const [query, setQuery] = useState('');
   const fileRef = useRef(null);
+  const [loadingSample, setLoadingSample] = useState(false);
 
   const hasApps = db.apps.length > 0;
 
@@ -42,47 +56,68 @@ export default function Applications() {
       })
     : db.apps;
 
-  // Merge-import: newer records win, nothing is erased. (Settings still offers a
-  // full replace-import for the rare "start over from this file" case.)
+  // Merge `incoming` into the current data: newer records win, nothing is erased.
+  // Shared by file import and the "Load sample data" fetch. `source` only tweaks
+  // the wording of the confirm/no-op messages.
+  function mergeIncoming(incoming, source = 'this file') {
+    const merged = mergeDB(db, incoming);
+    const COLLECTIONS = ['apps', 'orgs', 'contacts', 'analyses', 'todos'];
+    const added = COLLECTIONS.reduce(
+      (n, k) => n + (merged[k].length - db[k].length),
+      0
+    );
+    const incomingTotal = COLLECTIONS.reduce(
+      (n, k) => n + (incoming[k]?.length || 0),
+      0
+    );
+    const updated = incomingTotal - added; // matched existing ids (newest wins)
+    const changed = COLLECTIONS.some(
+      k =>
+        merged[k].length !== db[k].length ||
+        merged[k].some((rec, i) => rec !== db[k][i])
+    );
+    if (!changed) {
+      alert(`You're already up to date with ${source}. Nothing to merge.`);
+      return;
+    }
+    if (
+      confirm(
+        `Merge ${incomingTotal} record(s) from ${source} into your data?\n\n` +
+          `• ${added} new record(s) added\n` +
+          `• ${updated} matched existing record(s) (newer version kept)\n\n` +
+          `Your current data is not erased.`
+      )
+    ) {
+      replaceAll(merged);
+    }
+  }
+
+  // Merge-import from a file the user picks. (Settings still offers a full
+  // replace-import for the rare "start over from this file" case.)
   async function onImport(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const incoming = await importFromFile(file);
-      const merged = mergeDB(db, incoming);
-      const COLLECTIONS = ['apps', 'orgs', 'contacts', 'analyses', 'todos'];
-      const added = COLLECTIONS.reduce(
-        (n, k) => n + (merged[k].length - db[k].length),
-        0
-      );
-      const incomingTotal = COLLECTIONS.reduce(
-        (n, k) => n + (incoming[k]?.length || 0),
-        0
-      );
-      const updated = incomingTotal - added; // matched existing ids (newest wins)
-      const changed = COLLECTIONS.some(
-        k =>
-          merged[k].length !== db[k].length ||
-          merged[k].some((rec, i) => rec !== db[k][i])
-      );
-      if (!changed) {
-        alert("You're already up to date with this file. Nothing to merge.");
-        return;
-      }
-      if (
-        confirm(
-          `Merge ${incomingTotal} record(s) from this file into your data?\n\n` +
-            `• ${added} new record(s) added\n` +
-            `• ${updated} matched existing record(s) (newer version kept)\n\n` +
-            `Your current data is not erased.`
-        )
-      ) {
-        replaceAll(merged);
-      }
+      mergeIncoming(await importFromFile(file));
     } catch (err) {
       alert(err.message || 'Import failed.');
     } finally {
       e.target.value = ''; // allow re-importing the same file
+    }
+  }
+
+  // Load the demo board checked into the repo (docs/sample-data.json) so a new
+  // user can see a populated board in one click. Merged, never destructive.
+  async function loadSampleData() {
+    setLoadingSample(true);
+    try {
+      const res = await fetch(SAMPLE_DATA_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error();
+      mergeIncoming({ ...emptyDB(), ...(await res.json()) }, 'the sample data');
+    } catch {
+      alert('Could not load the sample data — check your connection and try again.');
+    } finally {
+      setLoadingSample(false);
     }
   }
 
@@ -171,6 +206,14 @@ export default function Applications() {
                   onClick={() => fileRef.current?.click()}
                 >
                   Load jobs from saved file
+                </button>
+                <button
+                  className="btn btn--ghost"
+                  onClick={loadSampleData}
+                  disabled={loadingSample}
+                  title="Fill the board with a ready-made sample search (20 jobs, orgs, contacts, and a Fit Criteria profile) so you can explore before adding your own."
+                >
+                  {loadingSample ? 'Loading…' : 'Load sample data'}
                 </button>
               </>
             }
